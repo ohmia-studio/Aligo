@@ -1,7 +1,13 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  eslint: {
+    dirs: ["app", "pages", "components", "utils", "lib"],
+  },
+  reactStrictMode: true,
+  typescript: {
+    ignoreBuildErrors: false,
+  },
 };
 
 export default nextConfig;
