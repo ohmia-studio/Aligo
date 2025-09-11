@@ -59,6 +59,13 @@ export default [
       '@next/next/no-page-custom-font': 'off',
     },
   },
+  // Override para Jest
+  {
+    files: ['tests/**/*.ts', 'tests/**/*.tsx', '**/*.test.ts', '**/*.test.tsx'],
+    env: {
+      jest: true, // activa globals de Jest (describe, it, expect)
+    },
+  },
 
   // Prettier
   {
