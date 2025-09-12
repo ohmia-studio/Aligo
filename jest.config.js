@@ -15,6 +15,7 @@ module.exports = {
   transform: {
     '^.+\\.(ts|tsx)$': 'ts-jest', // TS y TSX
   },
+  setupFiles: ['<rootDir>/jest.setup.js'], // para configurar jest antes de correr tests
   setupFilesAfterEnv: ['@testing-library/jest-dom'], // para matcher de RTL
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1', // para resolver imports con @/
