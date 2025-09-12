@@ -1,8 +1,13 @@
-'use server';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-import { createClient } from '@supabase/supabase-js';
 
-export const supabaseClient = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_KEY!
-);
+
+// Singleton: creamos una única instancia
+let supabase: SupabaseClient | null = null;
+
+export function getSupabase(): SupabaseClient {
+  if (!supabase) {
+    supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
+  }
+  return supabase;
+}

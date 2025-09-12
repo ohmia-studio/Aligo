@@ -1,5 +1,5 @@
-import { supabaseClient } from '../../lib/supabaseClient';
-
+import { getSupabase } from '@/lib/supabaseClient';
+// Resultado del login
 interface LoginResult {
   status: number;
   message: string;
@@ -8,6 +8,7 @@ interface LoginResult {
   refresh_token?: string;
 }
 
+// Parámetros de login
 interface LoginParams {
   email: string;
   password: string;
@@ -17,8 +18,10 @@ export async function loginUser({
   email,
   password,
 }: LoginParams): Promise<LoginResult> {
+  // si es función, ejecutarla para obtener el cliente
   try {
-    const { data: userData, error: userError } = await supabaseClient
+    const supabase = getSupabase();
+    const { data: userData, error: userError } = await supabase
       .from('Persona')
       .select('email, rol, nombre')
       .eq('email', email.trim())
@@ -29,7 +32,7 @@ export async function loginUser({
     }
 
     const { data: authData, error: authError } =
-      await supabaseClient.auth.signInWithPassword({ email, password });
+      await supabase.auth.signInWithPassword({ email, password });
 
     if (authError || !authData.session) {
       return { status: 401, message: 'Credenciales incorrectas' };

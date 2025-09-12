@@ -1,6 +1,5 @@
 import { loginUser } from '@/features/auth/login';
 import '@testing-library/jest-dom';
-
 describe('loginUser - tests sobre la respuesta del backend', () => {
   it('debería retornar login exitoso', async () => {
     const response = await loginUser({

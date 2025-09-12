@@ -50,7 +50,7 @@ Cada error debe documentarse siguiendo la siguiente estructura:
 
 ---
 
-## Ejemplo que ocurrió recientemente
+## Ejemplo
 
 # 001 – 2025-09-11
 
@@ -160,3 +160,110 @@ module.exports = {
   },
 };
 ```
+
+# #004 – 2025-09-11
+
+### 2️⃣ Descripción del error
+
+- Los tests con Jest no podían acceder a las **variables de entorno** definidas en `.env.local`.
+- Esto causaba errores de tipo `undefined` al intentar usar `process.env.NEXT_PUBLIC_SUPABASE_URL` y otras variables dentro de los tests.
+
+### 3️⃣ Contexto
+
+- Archivos afectados: tests unitarios de login (`loginUser.test.ts`) y cualquier test que use el cliente de Supabase.
+- Frameworks / librerías: Next.js 13+, Jest, TypeScript, Supabase JS.
+- Intento: correr tests que dependían de variables de entorno sin que estas estuvieran cargadas automáticamente.
+
+### 4️⃣ Causa
+
+- Jest **no carga automáticamente las variables de entorno** definidas en `.env.local`.
+- Por lo tanto, cualquier función que dependiera de estas variables fallaba en los tests.
+- Esto ocurre porque Jest corre en un entorno Node aislado y no lee los archivos `.env` de Next.js por defecto.
+
+### 5️⃣ Solución aplicada
+
+- Se creó un archivo de configuración para Jest que carga las variables de entorno antes de ejecutar los tests:
+
+**`jest.setup.js`**
+
+```js
+const dotenv = require('dotenv');
+
+dotenv.config({ path: '.env.local' });
+```
+
+- Se agregó la siguiente configuración a jest.config.js:
+
+```js
+setupFiles: ['<rootDir>/jest.setup.js'], // carga variables de entorno antes de los tests
+```
+
+# #005 – 2025-09-12
+
+### 1️⃣ Descripción del error
+
+Necesitaba testear funciones de servidor que utilizan Supabase en un proyecto con **Next.js**, **Jest** y **Testing Library**, pero mi implementación era engorrosa:
+
+- Tenía **dos clientes de Supabase** (uno para server y otro para client).
+- En cada función debía pasar manualmente un `supabaseProvider` (que podía ser función o instancia).
+- Esto hacía que el código fuera repetitivo, difícil de mantener y poco limpio.
+
+### 2️⃣ Contexto
+
+- **Archivo(s):** `/lib/supabaseServer.ts`, `/lib/supabaseClient.ts`, funciones como `loginUser.ts`.
+- **Framework/Librerías:**
+  - Next.js 15.5.2
+  - @supabase/supabase-js 2.57.4
+  - Jest 30.1.3
+- **Situación:** Quería testear las funciones de servidor sin tener que pasar el cliente en cada test y sin usar `@supabase/ssr`.
+
+### 3️⃣ Causa
+
+Diseño inicial incorrecto:
+
+- Separar cliente y server en dos archivos estaba bien, pero **la necesidad de pasar el cliente manualmente en cada función era innecesaria**.
+- No estaba aprovechando un **singleton** para el cliente de Supabase.
+- Agregaba complejidad a la API de mis funciones (las hacía menos amigables y más verbosas).
+
+### 4️⃣ Solución aplicada
+
+1. **Unifiqué la creación del cliente en un único módulo `/lib/supabase.ts`:**
+
+```ts
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
+
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+let supabase: SupabaseClient | null = null;
+
+export function getSupabase(): SupabaseClient {
+  if (!supabase) {
+    supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  }
+  return supabase;
+}
+```
+
+2. Modifiqué las funciones de negocio para que usen getSupabase() directamente
+
+```ts
+import { getSupabase } from './supabase';
+
+export async function loginUser({ email, password }: LoginParams) {
+  const supabase = getSupabase();
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (error) return { status: 401, message: 'Credenciales incorrectas' };
+  return { status: 200, message: 'Login exitoso', user: data.user };
+}
+```
+
+### Referencias
+
+- Supabase Docs – createClient
+
+- StackOverflow – Supabase singleton pattern
