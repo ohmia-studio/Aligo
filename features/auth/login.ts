@@ -1,4 +1,4 @@
-import { getSupabase } from '@/lib/supabaseClient';
+import { getSupabaseServer } from '@/lib/supabaseServer';
 // Resultado del login
 interface LoginResult {
   status: number;
@@ -20,7 +20,7 @@ export async function loginUser({
 }: LoginParams): Promise<LoginResult> {
   // si es función, ejecutarla para obtener el cliente
   try {
-    const supabase = getSupabase();
+    const supabase = await getSupabaseServer();
     const { data: userData, error: userError } = await supabase
       .from('Persona')
       .select('email, rol, nombre')
@@ -46,6 +46,7 @@ export async function loginUser({
       refresh_token: authData.session.refresh_token,
     };
   } catch (err) {
+    console.log(err);
     return { status: 500, message: 'Error interno del servidor' };
   }
 }

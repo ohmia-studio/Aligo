@@ -21,6 +21,13 @@ export default [
       '.vscode/**',
     ],
   },
+  {
+    languageOptions: {
+      globals: {
+        process: 'readonly', // agrega `process` como global para todo el proyecto
+      },
+    },
+  },
 
   // Reglas base de JavaScript
   js.configs.recommended,
@@ -43,6 +50,13 @@ export default [
     },
     rules: {
       ...tsPlugin.configs.recommended.rules,
+    },
+    linterOptions: {
+      env: {
+        browser: true,
+        node: true,
+        es2021: true,
+      },
     },
   },
 
