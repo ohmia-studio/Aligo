@@ -1,4 +1,5 @@
 import { getSupabaseServer } from '@/lib/supabaseServer';
+import { getUserByEmail } from '@/lib/userService';
 // Resultado del login
 interface LoginResult {
   status: number;
@@ -20,17 +21,11 @@ export async function loginUser({
 }: LoginParams): Promise<LoginResult> {
   // si es función, ejecutarla para obtener el cliente
   try {
-    const supabase = await getSupabaseServer();
-    const { data: userData, error: userError } = await supabase
-      .from('Persona')
-      .select('email, rol, nombre')
-      .eq('email', email.trim())
-      .maybeSingle();
-
-    if (userError || !userData) {
+    const userData = await getUserByEmail(email);
+    if (!userData) {
       return { status: 401, message: 'Credenciales incorrectas' };
     }
-
+    const supabase = await getSupabaseServer();
     const { data: authData, error: authError } =
       await supabase.auth.signInWithPassword({ email, password });
 
