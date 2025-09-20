@@ -1,4 +1,5 @@
 import { getAllWorkers } from '@/features/workers/listWorkers';
+import { EmployeesTableClient } from '@/ui/employees/EmployeesTableClient';
 import { EmployeesTableSkeleton } from '@/ui/employees/EmployeesTableSkeleton';
 import { Suspense } from 'react';
 
@@ -21,24 +22,7 @@ async function EmployeesTableContent() {
           No hay empleados registrados.
         </div>
       ) : (
-        <table className="min-w-full overflow-hidden rounded-lg border border-gray-200">
-          <thead className="bg-green-400">
-            <tr>
-              <th className="px-4 py-2 text-left text-black">ID</th>
-              <th className="px-4 py-2 text-left text-black">Nombre</th>
-              <th className="px-4 py-2 text-left text-black">Rol</th>
-            </tr>
-          </thead>
-          <tbody className="bg-black">
-            {empleados.map((emp: any) => (
-              <tr key={emp.id} className="border-t">
-                <td className="px-4 py-2">{emp.id}</td>
-                <td className="px-4 py-2">{emp.nombre}</td>
-                <td className="px-4 py-2">{emp.rol}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <EmployeesTableClient empleados={empleados} />
       )}
     </div>
   );
