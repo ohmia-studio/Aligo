@@ -1,12 +1,12 @@
+'use server';
+import { getUserByEmail } from '@/features/auth/userService';
 import { getSupabaseServer } from '@/lib/supabaseServer';
-import { getUserByEmail } from '@/lib/userService';
 // Resultado del login
 interface LoginResult {
   status: number;
   message: string;
   role?: string;
-  session_token?: string;
-  refresh_token?: string;
+  email?: string;
 }
 
 // Parámetros de login
@@ -37,8 +37,7 @@ export async function loginUser({
       status: 200,
       message: 'Login exitoso',
       role: userData.rol,
-      session_token: authData.session.access_token,
-      refresh_token: authData.session.refresh_token,
+      email,
     };
   } catch (err) {
     console.log(err);

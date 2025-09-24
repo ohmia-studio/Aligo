@@ -1,6 +1,6 @@
 jest.mock('@/lib/supabaseServer', () => require('./supabaseServer.mock'));
 
-import { getUserByEmail } from '@/lib/userService';
+import { getUserByEmail } from '@/features/auth/userService';
 
 describe('getUserByEmail', () => {
   it('debería retornar el usuario si existe', async () => {

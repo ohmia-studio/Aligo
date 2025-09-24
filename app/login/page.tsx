@@ -1,4 +1,5 @@
 'use client';
+import { loginUser } from '@/features/auth/login';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 export default function Page() {
@@ -29,19 +30,12 @@ export default function Page() {
 
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:3000/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: username, password }),
-      });
-      if (!res.ok) {
-        throw new Error('Login failed');
-      } else {
-        router.push('/dashboard');
+      const result = await loginUser({ email: username, password });
+      if (result.status === 200) {
+        router.push('/dashboard'); // Redirige al dashboard
       }
-      // Aquí podrías redirigir o mostrar mensaje de éxito
     } catch (err: any) {
-      setError(err.message || 'Error');
+      console.error(err.message);
     } finally {
       setLoading(false);
     }
