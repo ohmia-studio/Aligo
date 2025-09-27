@@ -28,7 +28,8 @@ export default function Page() {
     try {
       if (resetMode) {
         const response = await requestResetPassword(username);
-        setMessage(response.message);
+        if (response.status === 200) setMessage(response.message);
+        else setError(response.message);
       } else {
         const pwdError = validatePassword(password);
         if (pwdError) {

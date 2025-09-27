@@ -6,10 +6,12 @@ interface ResetResult {
   status: number;
   message: string;
 }
+
 export async function requestResetPassword(
   email: string
 ): Promise<ResetResult> {
-  if (getUserByEmail(email) === null) {
+  const user = await getUserByEmail(email);
+  if (user === null) {
     return { status: 400, message: 'El email no está registrado' };
   }
   try {
@@ -40,7 +42,11 @@ export async function resetPassword(
       password: newPassword,
     });
     if (error) {
-      return { status: 400, message: error.message };
+      return {
+        status: 400,
+        message:
+          'La contraseña debe poseer al menos 6 caracteres, entre ellos: Números, Caracteres especiales ($,@,_) y letras',
+      };
     }
     return { status: 200, message: 'Contraseña actualizada con éxito' };
   } catch (err) {
