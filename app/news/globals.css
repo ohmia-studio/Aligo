@@ -1,8 +1,10 @@
 @import 'tailwindcss';
-/*@import 'tw-animate-css';*/
 @plugin 'tailwindcss-animate';
 
-/*@custom-variant dark (&:is(.dark *));*/
+@import '../../styles/_variables.scss';
+@import '../../styles/_keyframe-animations.scss';
+
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
@@ -119,6 +121,7 @@
     --foreground: #ededed;
   }
 }
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

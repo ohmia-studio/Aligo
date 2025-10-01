@@ -1,4 +1,4 @@
-import { getSupabaseServer } from '@/lib/supabaseServer';
+import { getSupabaseServer } from '@/lib/supabase/supabaseServer';
 // Resultado del login
 interface LoginResult {
   status: number;
