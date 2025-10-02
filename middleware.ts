@@ -1,6 +1,6 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { getSupabaseServer } from './lib/supabaseServer';
+import { getSupabaseServer } from './lib/supabase/supabaseServer';
 
 // Mapa de rutas y roles permitidos
 const routeRoles: Record<string, string[]> = {
