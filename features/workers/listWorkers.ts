@@ -1,4 +1,4 @@
-import { getSupabaseServer } from '@/lib/supabaseServer';
+import { getSupabaseServer } from '@/lib/supabase/supabaseServer';
 export async function getAllWorkers() {
   const supabase = await getSupabaseServer();
   const { data, error } = await supabase

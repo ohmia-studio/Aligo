@@ -1,4 +1,6 @@
-jest.mock('@/lib/supabaseServer', () => require('./supabaseServer.mock'));
+jest.mock('@/lib/supabase/supabaseServer', () =>
+  require('./supabaseServer.mock')
+);
 import { loginUser } from '@/features/auth/login';
 import '@testing-library/jest-dom';
 describe('loginUser - tests sobre la respuesta del backend', () => {

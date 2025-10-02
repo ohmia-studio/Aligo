@@ -1,7 +1,7 @@
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
+import { getSupabaseServer } from '@/lib/supabase/supabaseServer';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import { getUserByEmail } from './features/auth/userRepository';
 
 // Mapa de rutas y roles permitidos
 const routeRoles: Record<string, string[]> = {
@@ -11,19 +11,7 @@ const routeRoles: Record<string, string[]> = {
 };
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
-
-  // Llamamos a tu cliente server
-  const cookieStore = await cookies();
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll: () => cookieStore.getAll(),
-      },
-    }
-  );
+  const supabase = await getSupabaseServer();
   // Supabase intentará refrescar automáticamente si el access_token expiró
   const { data, error } = await supabase.auth.getUser();
 
@@ -34,17 +22,13 @@ export async function middleware(req: NextRequest) {
   if (!data?.user) {
     return NextResponse.redirect(new URL('/login', req.url));
   }
-  const { data: usuario, error: rolError } = await supabase
-    .from('Persona')
-    .select('rol')
-    .eq('email', data.user.email?.trim())
-    .maybeSingle();
-  if (rolError || !usuario) {
-    console.warn('No se pudo obtener el rol del usuario:', rolError?.message);
+  const response = await getUserByEmail(data.user.email || '');
+  if (!response) {
+    console.warn('No se pudo obtener el rol del usuario');
     return NextResponse.redirect(new URL('/login', req.url));
   }
 
-  const userRole = usuario.rol;
+  const userRole = response.rol;
 
   // Verificar permisos según ruta
   const path = req.nextUrl.pathname;

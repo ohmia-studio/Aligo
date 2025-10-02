@@ -1,4 +1,6 @@
-jest.mock('@/lib/supabaseServer', () => require('./supabaseServer.mock'));
+jest.mock('@/lib/supabase/supabaseServer', () =>
+  require('./supabaseServer.mock')
+);
 
 import { getAllWorkers } from '@/features/workers/listWorkers';
 import '@testing-library/jest-dom';

@@ -2,7 +2,6 @@
 
 import { TextEditor } from '@/components/tiptap/tiptap-templates/tiptap-editor';
 import { createNewsAction } from '@/features/news/actions/createNews';
-import { deleteNewsImagesAction } from '@/features/news/actions/deleteNewsImages';
 import { uploadNewImage } from '@/features/news/news';
 import { createTagAction } from '@/features/news/tags';
 import { EditorImage } from '@/interfaces/editor-interfaces';
@@ -109,8 +108,6 @@ export default function NewsForm({ tags: initialTags }: { tags: TagItem[] }) {
       setDescription(null);
       setImages([]);
     } catch (err: any) {
-      await deleteNewsImagesAction(err.data.path); // TODO: queda implementar correctamente una clase para los errores y testear esto.
-      console.error('createNewsAction error:', err);
       toast.error(err?.message ?? 'Error al crear la novedad');
     } finally {
       setLoading(false);
