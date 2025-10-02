@@ -31,8 +31,11 @@ export default function Page() {
     setLoading(true);
     try {
       const result = await loginUser({ email: username, password });
+      console.log(result);
       if (result.status === 200) {
         router.push('/dashboard'); // Redirige al dashboard
+      } else {
+        setError(result.message);
       }
     } catch (err: any) {
       console.error(err.message);
