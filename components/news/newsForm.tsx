@@ -7,6 +7,10 @@ import { createTagAction } from '@/features/news/tags';
 import { EditorImage } from '@/interfaces/editor-interfaces';
 import { TagItem } from '@/interfaces/news-interfaces';
 import {
+  newsStorageFileSnakeCase,
+  newsStorageFolderSnakeCase,
+} from '@/lib/storageStringCase';
+import {
   extractImageSrcsFromJSON,
   replaceImageSrcsInJSON,
 } from '@/lib/tiptap/tiptap-images-src';
@@ -55,15 +59,15 @@ export default function NewsForm({ tags: initialTags }: { tags: TagItem[] }) {
       const relevantImages = images.filter((s) => currentSrcs.includes(s.src));
 
       const newPublishTime = new Date();
-      const folderName = title
-        .trim()
-        .concat(newPublishTime.getTime().toString());
+
+      const folderName = newsStorageFolderSnakeCase(title, newPublishTime);
 
       let mapping: Record<string, string> = {};
       let bucket_folder_url = '';
       // 2) Se suben las imagenes al bucket storage una a una (no es optimo, creo que hay un metodo para subir varias al mismo tiempo)
+      let fileIndex = 0;
       for (const item of relevantImages) {
-        const imageName = `${newPublishTime.getTime().toString()}-${encodeURIComponent(item.image.name)}`;
+        const imageName = `${fileIndex}-${encodeURIComponent(newsStorageFileSnakeCase(item.image.name))}`;
         const responseStorage = await uploadNewImage(
           folderName,
           imageName,
@@ -77,6 +81,7 @@ export default function NewsForm({ tags: initialTags }: { tags: TagItem[] }) {
 
         const path = `${responseStorage.data}/${imageName}`;
         mapping[item.src] = path || '';
+        fileIndex++;
       }
 
       // 3) reemplazar src en JSON
@@ -168,7 +173,7 @@ export default function NewsForm({ tags: initialTags }: { tags: TagItem[] }) {
       <button
         type="submit"
         disabled={loading}
-        className="h-[5svh] w-40 rounded bg-orange-800 px-4 py-2 text-white hover:bg-orange-600 disabled:bg-gray-400"
+        className="h-[5svh] w-40 rounded bg-orange-800 px-4 py-2 text-white hover:cursor-pointer hover:bg-orange-600 disabled:bg-gray-400"
       >
         {loading ? 'Enviando...' : 'Crear novedad'}
       </button>

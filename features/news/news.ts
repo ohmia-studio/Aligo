@@ -3,6 +3,49 @@
 import { New } from '@/interfaces/news-interfaces';
 import { Result } from '@/interfaces/server-response-interfaces';
 import { getSupabaseServer } from '@/lib/supabase/supabaseServer';
+
+// Por alguna razon el uploadDate (y siempre que recibo desde la BD la fecha, la recibo en String, por más de que esté el tipo de Date o TimeStamp)
+export async function deleteNew(title: string, uploadDate: Date, folder: string) {
+
+  const supabaseServer = await getSupabaseServer();
+  try {
+    const { data, error } = await supabaseServer.from('Novedad').delete().eq('titulo', title).eq('created_at', uploadDate);
+    if (error) throw error;
+
+    const { data: files, error: listError } = await supabaseServer.storage
+      .from('Novedades')
+      .list(folder, { limit: 1000 });
+
+    if (listError) throw listError;
+
+    console.log('Archivos encontrados:', files);
+
+    if (files && files.length > 0) {
+      // Obtener todos los archivos de la carpeta del bucket. No se puede eliminar llamando unicamente a la carpeta
+      // ya que no existe una carpeta en si, sino que es una forma visual de mostrar rutas de archivos ordenados.
+      const paths = files.map(f => `${folder}/${f.name}`);
+      const { error: removeError } = await supabaseServer.storage
+        .from('Novedades')
+        .remove(paths);
+
+      if (removeError) throw removeError;
+    }
+
+    return {
+      status: 200,
+      message: 'Novedad eliminada correctamente',
+      data: null
+    }
+  } catch (err: any) {
+    console.error('Error en delteNew', err);
+    return {
+      status: 500,
+      message: err?.message || 'unexpected error in deleteNew',
+      data: null
+    }
+  }
+}
+
 export async function deleteImagesOnError(path: string): Promise<Result> {
   const supabaseServer = await getSupabaseServer();
   try {
