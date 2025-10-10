@@ -1,4 +1,6 @@
-jest.mock('@/lib/supabaseServer', () => require('./supabaseServer.mock'));
+jest.mock('@/lib/supabase/supabaseServer', () =>
+  require('./supabaseServer.mock')
+);
 import { loginUser } from '@/features/auth/login';
 import '@testing-library/jest-dom';
 describe('loginUser - tests sobre la respuesta del backend', () => {
@@ -11,8 +13,7 @@ describe('loginUser - tests sobre la respuesta del backend', () => {
     expect(response.status).toBe(200);
     expect(response.message).toBe('Login exitoso');
     expect(response.role).toBe('admin');
-    expect(response.session_token).toBeDefined();
-    expect(response.refresh_token).toBeDefined();
+    expect(response.email).toBe('massimoparzanese@gmail.com');
   });
 
   it('debería retornar credenciales incorrectas (password incorrecta)', async () => {
@@ -24,8 +25,7 @@ describe('loginUser - tests sobre la respuesta del backend', () => {
     expect(response.status).toBe(401);
     expect(response.message).toBe('Credenciales incorrectas');
     expect(response.role).toBeUndefined();
-    expect(response.session_token).toBeUndefined();
-    expect(response.refresh_token).toBeUndefined();
+    expect(response.email).toBeUndefined();
   });
 
   it('debería retornar credenciales incorrectas (usuario inexistente)', async () => {
@@ -37,7 +37,6 @@ describe('loginUser - tests sobre la respuesta del backend', () => {
     expect(response.status).toBe(401);
     expect(response.message).toBe('Credenciales incorrectas');
     expect(response.role).toBeUndefined();
-    expect(response.session_token).toBeUndefined();
-    expect(response.refresh_token).toBeUndefined();
+    expect(response.email).toBeUndefined();
   });
 });

@@ -1,96 +1,19 @@
 'use client';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import AuthForm from '@/components/auth/AuthForm';
+import ResetPasswordForm from '@/components/auth/ResetPasswordForm';
+import { useSearchParams } from 'next/navigation';
+
 export default function Page() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const router = useRouter();
-  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-
-    // Validaciones
-    if (!username.trim()) {
-      setError('El email es obligatorio');
-      return;
-    }
-    if (!emailRegex.test(username)) {
-      setError('El email no tiene un formato válido');
-      return;
-    }
-    if (!password.trim()) {
-      setError('La contraseña es obligatoria');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const res = await fetch('http://localhost:3000/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: username, password }),
-      });
-      if (!res.ok) {
-        throw new Error('Login failed');
-      } else {
-        router.push('/dashboard');
-      }
-      // Aquí podrías redirigir o mostrar mensaje de éxito
-    } catch (err: any) {
-      setError(err.message || 'Error');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const searchParams = useSearchParams();
+  const token = searchParams.get('code');
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-100 to-indigo-200">
       <div className="w-full max-w-md rounded-xl bg-white p-8 shadow-lg">
         <h2 className="mb-6 text-center text-3xl font-bold text-indigo-700">
-          Iniciar sesión
+          {token ? 'Nueva Contraseña' : 'Inicio de sesión'}
         </h2>
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
-              Usuario
-            </label>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-              className="w-full rounded-lg border border-gray-300 px-4 py-2 text-black focus:ring-2 focus:ring-indigo-400 focus:outline-none"
-              placeholder="Tu usuario"
-            />
-          </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
-              Contraseña
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full rounded-lg border border-gray-300 px-4 py-2 text-black focus:ring-2 focus:ring-indigo-400 focus:outline-none"
-              placeholder="Tu contraseña"
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-lg bg-indigo-600 px-4 py-2 font-semibold text-white shadow transition hover:bg-indigo-700 disabled:opacity-50"
-          >
-            {loading ? 'Enviando...' : 'Ingresar'}
-          </button>
-          {error && (
-            <div className="mt-2 text-center text-red-600">{error}</div>
-          )}
-        </form>
+        {token ? <ResetPasswordForm token={token} /> : <AuthForm />}
       </div>
     </div>
   );
