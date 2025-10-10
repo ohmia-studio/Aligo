@@ -3,6 +3,7 @@ import Alert from '@/components/ui/FormAlert';
 import PasswordInput from '@/components/ui/PasswordInput';
 import { authAction } from '@/features/auth/auth';
 import { useAuthForm } from '@/hooks/useAuthForm';
+import getSupabaseClient from '@/lib/supabase/supabaseClient';
 
 export default function AuthForm() {
   const {
@@ -27,16 +28,36 @@ export default function AuthForm() {
     setLoading(true);
     clearMessages();
 
+    // Si estamos en modo reset, hacemos la petición desde el cliente
+    // para que Supabase guarde el code_verifier en localStorage (PKCE)
+    if (state.resetMode) {
+      try {
+        const supabase = getSupabaseClient();
+        const redirectTo = `${window.location.origin}/login`;
+        const { error } = await supabase.auth.resetPasswordForEmail(
+          state.username,
+          { redirectTo }
+        );
+        if (error) {
+          setMessage(error.message || 'Error enviando el correo.', true);
+        } else {
+          setMessage('Correo de restablecimiento enviado', false);
+          activateResetCooldown();
+        }
+      } catch (e) {
+        setMessage('No se pudo enviar el correo de restablecimiento.', true);
+      }
+      setLoading(false);
+      return;
+    }
+
+    // Caso login: seguimos usando la server action
     const formData = new FormData(event.currentTarget);
     const result = await authAction(formData);
 
     if (result?.message) {
       const isSuccess = result.status === 200;
       setMessage(result.message, !isSuccess);
-
-      if (state.resetMode && isSuccess) {
-        activateResetCooldown();
-      }
     }
 
     setLoading(false);
