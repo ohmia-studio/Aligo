@@ -3,7 +3,7 @@ import { Result } from '@/interfaces/server-response-interfaces';
 import { validateEmail } from '@/lib/validations';
 import { redirect } from 'next/navigation';
 import { loginUser } from './login';
-import { requestResetPassword, resetPassword } from './resetPassword';
+import { requestResetPassword, updatePasswordAction } from './resetPassword';
 export async function authAction(formData: FormData): Promise<Result> {
   // Verifica a que función debe llamar dependiendo reset mode
   const username = formData.get('username') as string;
@@ -24,8 +24,4 @@ export async function authAction(formData: FormData): Promise<Result> {
   }
 }
 // Server action para el form de nueva contraseña
-export async function resetPasswordAction(formData: FormData) {
-  const newPassword = formData.get('newPassword') as string;
-  const token = formData.get('token') as string;
-  return await resetPassword(newPassword, token);
-}
+export { updatePasswordAction };

@@ -27,12 +27,9 @@ export async function requestResetPassword(email: string): Promise<Result> {
   }
 }
 
-export async function resetPassword(
-  newPassword: string,
-  token: string
-): Promise<Result> {
+export async function resetPassword(newPassword: string): Promise<Result> {
   try {
-    const error = await updatePassword(newPassword, token);
+    const error = await updatePassword(newPassword);
     if (error) {
       return {
         status: 400,
@@ -50,4 +47,20 @@ export async function resetPassword(
     console.log(err);
     return { status: 500, message: 'Internal server error', data: null };
   }
+}
+
+// Server action dedicada para el form (evita importar de auth.ts)
+export async function updatePasswordAction(
+  formData: FormData
+): Promise<Result> {
+  const newPassword = String(formData.get('newPassword') || '');
+  if (!newPassword || newPassword.length < 6) {
+    return {
+      status: 400,
+      message:
+        'La contraseña debe poseer al menos 6 caracteres, entre ellos: Números, Caracteres especiales ($,@,_) y letras',
+      data: null,
+    };
+  }
+  return await resetPassword(newPassword);
 }
