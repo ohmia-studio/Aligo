@@ -2,9 +2,9 @@
 'use client';
 
 import { logoutUser } from '@/features/auth/logout';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
-
 export default function DashboardLayout({
   children,
 }: {
@@ -27,7 +27,9 @@ export default function DashboardLayout({
   return (
     <div className="flex min-h-screen flex-col">
       <header className="flex items-center justify-between p-4 shadow">
-        <h1 className="text-lg font-bold">Mi App</h1>
+        <Link href="/dashboard" className="cursor-pointer font-bold text-white">
+          Mi app
+        </Link>
 
         <form action={handleLogout}>
           <button
@@ -38,6 +40,12 @@ export default function DashboardLayout({
             {isPending ? 'Cerrando...' : 'Cerrar sesión'}
           </button>
         </form>
+        <Link
+          href="/dashboard/catalogos"
+          className="cursor-pointer rounded bg-blue-500/10 px-3 py-1 text-blue-500"
+        >
+          Ir a Catálogos
+        </Link>
       </header>
 
       {error && (

@@ -26,23 +26,17 @@ export async function sigIn(email: string, password: string) {
 export async function requestPassword(email: string) {
   const supabase = await getSupabaseServer();
   const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: 'http://localhost:3000/login',
+    redirectTo: 'http://localhost:3000/new-password',
   });
   return error;
 }
 
-export async function updatePassword(newPassword: string, token: string) {
+export async function updatePassword(newPassword: string) {
+  // Requiere que la sesión ya esté activa en las cookies (PKCE exchange hecho en el cliente)
   const supabase = await getSupabaseServer();
-  const { data: userData, error: errorData } =
-    await supabase.auth.exchangeCodeForSession(token); // Recupera sesión con el token
-
-  const { data, error } = await supabase.auth.updateUser({
-    password: newPassword,
-  });
-  if (errorData || error) {
-    console.log('errorData', errorData);
-    console.log('error', error);
-    return errorData || error;
+  const { error } = await supabase.auth.updateUser({ password: newPassword });
+  if (error) {
+    return error;
   }
   return null;
 }

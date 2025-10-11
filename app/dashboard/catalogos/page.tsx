@@ -22,7 +22,6 @@ export default function CatalogosPage() {
       }
     } catch (error) {
       toast.error('Error al cargar los catálogos');
-      console.error(error);
     } finally {
       setIsLoading(false);
     }
@@ -49,13 +48,29 @@ export default function CatalogosPage() {
   };
 
   const handleDownload = (catalog: Catalog) => {
-    // Abrir el archivo en una nueva pestaña
-    window.open(catalog.url, '_blank');
+    // Construir URL de la API que servirá el archivo
+    const url = `/api/catalogos?key=${encodeURIComponent(
+      catalog.fullKey
+    )}&name=${encodeURIComponent(catalog.name)}`;
+
+    // Crear enlace temporal invisible para disparar la descarga
+    const a = document.createElement('a');
+    a.href = url; // Apunta a nuestra API
+    a.download = catalog.name; // Sugiere nombre para el archivo descargado
+
+    // Agregar temporalmente al DOM (requerido por algunos navegadores)
+    document.body.appendChild(a);
+
+    // Simular click → esto dispara la navegación/descarga a la URL
+    a.click();
+
+    // Limpiar el enlace temporal
+    document.body.removeChild(a);
+
     toast.success(`Descargando: ${catalog.name}`);
   };
 
   const handleUploadSuccess = () => {
-    // Actualizar lista después de subir un archivo
     fetchCatalogs();
   };
 
@@ -66,7 +81,7 @@ export default function CatalogosPage() {
   return (
     <div className="container mx-auto p-6">
       <div className="mb-8">
-        <h1 className="mb-2 text-3xl font-bold text-gray-900">
+        <h1 className="mb-2 text-3xl font-bold text-blue-500">
           Gestión de Catálogos
         </h1>
         <p className="text-gray-600">Sube y gestiona tus catálogos PDF</p>

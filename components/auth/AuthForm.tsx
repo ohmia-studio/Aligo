@@ -1,55 +1,66 @@
 'use client';
+import Alert from '@/components/ui/FormAlert';
+import PasswordInput from '@/components/ui/PasswordInput';
 import { authAction } from '@/features/auth/auth';
-import { useState } from 'react';
-import { toast } from 'sonner';
-type FormState = {
-  username: string;
-  password: string;
-  loading: boolean;
-  error: string;
-  message: string;
-  resetMode: boolean;
-  disabled: boolean;
-};
+import { useAuthForm } from '@/hooks/useAuthForm';
+import getSupabaseClient from '@/lib/supabase/supabaseClient';
+
 export default function AuthForm() {
-  const [state, setState] = useState<FormState>({
-    username: '',
-    password: '',
-    loading: false,
-    error: '',
-    message: '',
-    resetMode: false,
-    disabled: false,
-  });
-  const [resetCooldown, setResetCooldown] = useState(false);
+  const {
+    state,
+    resetCooldown,
+    updateField,
+    toggleResetMode,
+    setLoading,
+    setMessage,
+    clearMessages,
+    clearError,
+    clearSuccessMessage,
+    activateResetCooldown,
+  } = useAuthForm();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setState((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
-
-  const handleToggleReset = () => {
-    setState((prev) => ({
-      ...prev,
-      resetMode: !prev.resetMode,
-      error: '',
-      message: '',
-      disabled: false,
-      username: '',
-    }));
+    updateField(e.target.name, e.target.value);
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setLoading(true);
+    clearMessages();
+
+    // Si estamos en modo reset, hacemos la petición desde el cliente
+    // para que Supabase guarde el code_verifier en localStorage (PKCE)
+    if (state.resetMode) {
+      try {
+        const supabase = getSupabaseClient();
+        const redirectTo = `${window.location.origin}/login`;
+        const { error } = await supabase.auth.resetPasswordForEmail(
+          state.username,
+          { redirectTo }
+        );
+        if (error) {
+          setMessage(error.message || 'Error enviando el correo.', true);
+        } else {
+          setMessage('Correo de restablecimiento enviado', false);
+          activateResetCooldown();
+        }
+      } catch (e) {
+        setMessage('No se pudo enviar el correo de restablecimiento.', true);
+      }
+      setLoading(false);
+      return;
+    }
+
+    // Caso login: seguimos usando la server action
     const formData = new FormData(event.currentTarget);
     const result = await authAction(formData);
+
     if (result?.message) {
-      toast[result.status === 200 ? 'success' : 'error'](result.message);
+      const isSuccess = result.status === 200;
+      setMessage(result.message, !isSuccess);
     }
-    // Si está en resetMode y fue exitoso, activa cooldown
-    if (state.resetMode && result?.status === 200) {
-      setResetCooldown(true);
-      setTimeout(() => setResetCooldown(false), 30000); // 30 segundos
-    }
+
+    setLoading(false);
   };
 
   return (
@@ -77,14 +88,12 @@ export default function AuthForm() {
           <label className="mb-1 block text-sm font-medium text-gray-700">
             Contraseña
           </label>
-          <input
-            type="password"
+          <PasswordInput
             name="password"
             value={state.password}
             onChange={handleChange}
-            required
-            className="w-full rounded-lg border border-gray-300 px-4 py-2 text-black focus:ring-2 focus:ring-indigo-400 focus:outline-none"
             placeholder="Tu contraseña"
+            required
           />
         </>
       )}
@@ -104,16 +113,21 @@ export default function AuthForm() {
 
       <p
         className="cursor-pointer text-center text-black hover:underline"
-        onClick={handleToggleReset}
+        onClick={toggleResetMode}
       >
         {state.resetMode ? 'Volver al login' : 'Olvidé mi contraseña'}
       </p>
 
       {state.error && (
-        <div className="mt-2 text-center text-red-600">{state.error}</div>
+        <Alert type="error" message={state.error} onClose={clearError} />
       )}
+
       {state.message && (
-        <div className="mt-2 text-center text-green-600">{state.message}</div>
+        <Alert
+          type="success"
+          message={state.message}
+          onClose={clearSuccessMessage}
+        />
       )}
     </form>
   );

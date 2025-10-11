@@ -37,6 +37,8 @@ export async function uploadCatalogAction(formData: FormData) {
       Key: fileName,
       Body: buffer,
       ContentType: 'application/pdf',
+      // Forzar descarga directa cuando se acceda a la URL pública
+      ContentDisposition: `attachment; filename="${file.name}"`,
     });
 
     await r2.send(command);
