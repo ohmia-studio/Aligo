@@ -1,13 +1,14 @@
 'use server';
 
-import { supabaseAdmin } from '@/lib/supabase/supabaseAdmin';
 import { Result } from '@/interfaces/server-response-interfaces';
+import { supabaseAdmin } from '@/lib/supabase/supabaseAdmin';
 
 type AltaEmpleadoParams = {
   dni: string;
   nombre: string;
   apellido: string;
   email: string;
+  telefono?: string;
 };
 
 export async function altaEmpleadoAction(formData: FormData): Promise<Result> {
@@ -15,14 +16,69 @@ export async function altaEmpleadoAction(formData: FormData): Promise<Result> {
   const nombre = formData.get('nombre')?.toString().trim();
   const apellido = formData.get('apellido')?.toString().trim();
   const email = formData.get('email')?.toString().trim();
+  const telefono = formData.get('telefono')?.toString().trim() ?? '';
 
-  if (!dni || !nombre || !apellido || !email) {
+  if (!dni || !nombre || !apellido || !email || !telefono) {
     return {
       status: 400,
       message: 'Todos los campos son obligatorios',
       data: null,
     };
   }
+
+  // Validaciones mínimas en servidor
+  const emailRegex = /^\S+@\S+\.\S+$/;
+  if (!emailRegex.test(email)) {
+    return { status: 400, message: 'Email inválido', data: null };
+  }
+  if (dni.replace(/\D/g, '').length < 6) {
+    return { status: 400, message: 'DNI demasiado corto', data: null };
+  }
+  if (nombre.length < 2 || apellido.length < 2) {
+    return {
+      status: 400,
+      message: 'Nombre/Apellido demasiado cortos',
+      data: null,
+    };
+  }
+  if (telefono && !/^[0-9+\s()-]{6,20}$/.test(telefono)) {
+    return { status: 400, message: 'Teléfono inválido', data: null };
+  }
+
+  // === NUEVO: comprobar si DNI o email ya existen en Persona ===
+  try {
+    const { data: existing, error: existingError } = await supabaseAdmin
+      .from('Persona')
+      .select('id, dni, email')
+      .or(`dni.eq.${dni},email.eq.${email}`)
+      .limit(1)
+      .maybeSingle();
+
+    if (existingError) {
+      console.error('Error comprobando existencia en Persona:', existingError);
+      return {
+        status: 500,
+        message: 'Error verificando datos existentes',
+        data: null,
+      };
+    }
+
+    if (existing) {
+      return {
+        status: 409,
+        message: 'Esa persona ya se encuentra registrada',
+        data: null,
+      };
+    }
+  } catch (err) {
+    console.error('Error inesperado comprobando existencia:', err);
+    return {
+      status: 500,
+      message: 'Error inesperado en el servidor',
+      data: null,
+    };
+  }
+  // === FIN comprobación ===
 
   // 🔐 Generar contraseña temporal segura
   const passwordTemporal = generarPasswordTemporal();
@@ -33,8 +89,8 @@ export async function altaEmpleadoAction(formData: FormData): Promise<Result> {
       await supabaseAdmin.auth.admin.createUser({
         email,
         password: passwordTemporal,
-        email_confirm: false, // el email se envía igual
-        user_metadata: { nombre, apellido, dni },
+        email_confirm: false,
+        user_metadata: { nombre, apellido, dni, telefono },
       });
 
     if (createError || !userData?.user?.id) {
@@ -48,13 +104,14 @@ export async function altaEmpleadoAction(formData: FormData): Promise<Result> {
 
     const authId = userData.user.id;
 
-    // 2️⃣ Insertar en tabla Persona
+    // 2️⃣ Insertar en tabla Persona (incluye telefono)
     const { error: insertError } = await supabaseAdmin.from('Persona').insert([
       {
         dni,
         nombre,
         apellido,
         email,
+        telefono,
         rol: 'empleado',
         auth_id: authId,
       },
@@ -81,7 +138,10 @@ export async function altaEmpleadoAction(formData: FormData): Promise<Result> {
     });
 
     if (mailError) {
-      console.warn('No se pudo reenviar el mail de confirmación:', mailError.message);
+      console.warn(
+        'No se pudo reenviar el mail de confirmación:',
+        mailError.message
+      );
     }
 
     // 4️⃣ Éxito
@@ -89,7 +149,7 @@ export async function altaEmpleadoAction(formData: FormData): Promise<Result> {
       status: 200,
       message: `Empleado registrado correctamente. Se envió un correo a ${email}.`,
       data: {
-        passwordTemporal, // ⚠️ mostrala solo si luego se envía por correo
+        passwordTemporal,
       },
     };
   } catch (err) {
