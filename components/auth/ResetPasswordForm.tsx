@@ -1,4 +1,11 @@
 'use client';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import PasswordInput from '@/components/ui/PasswordInput';
 import { updatePasswordAction } from '@/features/auth/auth';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -10,6 +17,8 @@ export default function ResetPasswordForm() {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [showErrorDialog, setShowErrorDialog] = useState(false);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -55,9 +64,10 @@ export default function ResetPasswordForm() {
     const result = await updatePasswordAction(formData);
     if (result.status === 200) {
       setMessage(result.message);
-      router.push('/login');
+      setShowSuccessDialog(true);
     } else {
       setError(result.message);
+      setShowErrorDialog(true);
     }
     setLoading(false);
   };
@@ -101,12 +111,32 @@ export default function ResetPasswordForm() {
         {loading ? 'Actualizando...' : 'Actualizar Contraseña'}
       </button>
 
-      {error && (
-        <div className="mt-2 text-center text-sm text-red-600">{error}</div>
-      )}
-      {message && (
-        <div className="mt-2 text-center text-sm text-green-600">{message}</div>
-      )}
+      {/* Alert Dialog para errores */}
+      <AlertDialog open={showErrorDialog} onOpenChange={setShowErrorDialog}>
+        <AlertDialogContent>
+          <AlertDialogTitle>Error al actualizar contraseña</AlertDialogTitle>
+          <AlertDialogDescription>{error}</AlertDialogDescription>
+          <AlertDialogAction onClick={() => setShowErrorDialog(false)}>
+            Entendido
+          </AlertDialogAction>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Alert Dialog para éxito */}
+      <AlertDialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+        <AlertDialogContent>
+          <AlertDialogTitle>¡Contraseña actualizada!</AlertDialogTitle>
+          <AlertDialogDescription>{message}</AlertDialogDescription>
+          <AlertDialogAction
+            onClick={() => {
+              setShowSuccessDialog(false);
+              router.push('/login');
+            }}
+          >
+            Ir al Login
+          </AlertDialogAction>
+        </AlertDialogContent>
+      </AlertDialog>
     </form>
   );
 }
