@@ -2,7 +2,7 @@ jest.mock('@/lib/supabase/supabaseServer', () =>
   require('./supabaseServer.mock')
 );
 
-import { getAllWorkers } from '@/features/workers/listWorkers';
+import { getAllWorkers } from '@/features/employees/actions/listWorkers';
 import '@testing-library/jest-dom';
 
 describe('getAllWorkers - tests sobre la respuesta del backend', () => {
