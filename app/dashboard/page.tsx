@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 export default function DashboardHome() {
   return (
-    <div className="flex min-h-screen w-full flex-col items-center justify-center bg-gradient-to-br from-green-50 via-white to-indigo-100 px-2 py-8 sm:px-8">
+    <>
       <header className="flex w-full flex-col items-center py-4">
         <h1 className="mb-2 text-center text-3xl font-bold tracking-tight text-green-700 sm:text-4xl">
           Bienvenido a Aligo
@@ -82,6 +82,6 @@ export default function DashboardHome() {
           Aligo &copy; {new Date().getFullYear()} - Distribuidora inteligente
         </span>
       </footer>
-    </div>
+    </>
   );
 }

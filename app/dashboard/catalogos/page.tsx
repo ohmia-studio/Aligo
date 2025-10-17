@@ -83,7 +83,7 @@ export default function CatalogosPage() {
   }, []);
 
   return (
-    <main className="mx-auto w-full max-w-5xl bg-white px-2 py-6 sm:px-6 lg:px-8">
+    <>
       <header className="mb-8 flex flex-col items-center gap-2 text-center">
         <h1 className="text-3xl font-extrabold tracking-tight text-blue-500 sm:text-4xl">
           Gestión de Catálogos
@@ -92,7 +92,7 @@ export default function CatalogosPage() {
           Sube y gestiona tus catálogos PDF de manera simple y segura
         </p>
       </header>
-      <section className="flex flex-col gap-8 lg:flex-row lg:items-start">
+      <section className="flex flex-col gap-8 rounded-xl bg-gray-50 p-4 shadow-sm lg:flex-row lg:items-start">
         <article className="w-full lg:w-1/2">
           <CatalogUploadForm onUploadSuccess={handleUploadSuccess} />
         </article>
@@ -115,6 +115,6 @@ export default function CatalogosPage() {
         onCancel={handleDeleteCancel}
         catalogName={catalogToDelete?.name}
       />
-    </main>
+    </>
   );
 }
