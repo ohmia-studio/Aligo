@@ -1,5 +1,6 @@
+'use server';
 import { getSupabaseServer } from '@/lib/supabase/supabaseServer';
-export async function getAllWorkers() {
+export async function getWorkers() {
   const supabase = await getSupabaseServer();
   const { data, error } = await supabase
     .from('Persona')

@@ -1,7 +1,9 @@
 'use client';
+
 import CatalogList from '@/components/catalogs/CatalogList';
 import CatalogListSkeleton from '@/components/catalogs/CatalogListSkeleton';
 import CatalogUploadForm from '@/components/catalogs/CatalogUploadForm';
+import DeleteCatalogModal from '@/components/catalogs/DeleteCatalogModal';
 import { deleteCatalog, listCatalogs } from '@/features/catalogs/catalogs';
 import { Catalog } from '@/interfaces/catalogs-interfaces';
 import { useEffect, useState } from 'react';
@@ -10,6 +12,8 @@ import { toast } from 'sonner';
 export default function CatalogosPage() {
   const [catalogs, setCatalogs] = useState<Catalog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [catalogToDelete, setCatalogToDelete] = useState<Catalog | null>(null);
 
   const fetchCatalogs = async () => {
     try {
@@ -27,46 +31,46 @@ export default function CatalogosPage() {
     }
   };
 
-  const handleDelete = async (catalogKey: string) => {
-    if (!confirm('¿Estás seguro de que quieres eliminar este catálogo?')) {
-      return;
-    }
+  const handleDeleteRequest = (catalogId: string) => {
+    const catalog = catalogs.find((c) => c.id === catalogId) || null;
+    setCatalogToDelete(catalog);
+    setDeleteModalOpen(true);
+  };
 
+  const handleDeleteConfirm = async () => {
+    if (!catalogToDelete) return;
     try {
-      const result = await deleteCatalog(catalogKey);
+      const result = await deleteCatalog(catalogToDelete.id);
       if (result.success) {
         toast.success(result.message || 'Catálogo eliminado correctamente');
-        // Actualizar la lista sin hacer fetch completo
-        setCatalogs(catalogs.filter((c) => c.id !== catalogKey));
+        setCatalogs(catalogs.filter((c) => c.id !== catalogToDelete.id));
       } else {
         toast.error(result.error || 'Error al eliminar el catálogo');
       }
     } catch (error) {
       toast.error('Error al eliminar el catálogo');
       console.error(error);
+    } finally {
+      setDeleteModalOpen(false);
+      setCatalogToDelete(null);
     }
   };
 
+  const handleDeleteCancel = () => {
+    setDeleteModalOpen(false);
+    setCatalogToDelete(null);
+  };
+
   const handleDownload = (catalog: Catalog) => {
-    // Construir URL de la API que servirá el archivo
     const url = `/api/catalogos?key=${encodeURIComponent(
       catalog.fullKey
     )}&name=${encodeURIComponent(catalog.name)}`;
-
-    // Crear enlace temporal invisible para disparar la descarga
     const a = document.createElement('a');
-    a.href = url; // Apunta a nuestra API
-    a.download = catalog.name; // Sugiere nombre para el archivo descargado
-
-    // Agregar temporalmente al DOM (requerido por algunos navegadores)
+    a.href = url;
+    a.download = catalog.name;
     document.body.appendChild(a);
-
-    // Simular click → esto dispara la navegación/descarga a la URL
     a.click();
-
-    // Limpiar el enlace temporal
     document.body.removeChild(a);
-
     toast.success(`Descargando: ${catalog.name}`);
   };
 
@@ -79,34 +83,38 @@ export default function CatalogosPage() {
   }, []);
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="mb-8">
-        <h1 className="mb-2 text-3xl font-bold text-blue-500">
+    <main className="mx-auto w-full max-w-5xl bg-white px-2 py-6 sm:px-6 lg:px-8">
+      <header className="mb-8 flex flex-col items-center gap-2 text-center">
+        <h1 className="text-3xl font-extrabold tracking-tight text-blue-500 sm:text-4xl">
           Gestión de Catálogos
         </h1>
-        <p className="text-gray-600">Sube y gestiona tus catálogos PDF</p>
-      </div>
-
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-        {/* Formulario de subida */}
-        <div>
+        <p className="text-base text-gray-700 sm:text-lg">
+          Sube y gestiona tus catálogos PDF de manera simple y segura
+        </p>
+      </header>
+      <section className="flex flex-col gap-8 lg:flex-row lg:items-start">
+        <article className="w-full lg:w-1/2">
           <CatalogUploadForm onUploadSuccess={handleUploadSuccess} />
-        </div>
-
-        {/* Lista de catálogos */}
-        <div>
+        </article>
+        <article className="w-full lg:w-1/2">
           {isLoading ? (
             <CatalogListSkeleton />
           ) : (
             <CatalogList
               catalogs={catalogs}
-              onDelete={handleDelete}
+              onDelete={handleDeleteRequest}
               onDownload={handleDownload}
               onRefresh={fetchCatalogs}
             />
           )}
-        </div>
-      </div>
-    </div>
+        </article>
+      </section>
+      <DeleteCatalogModal
+        open={deleteModalOpen}
+        onConfirm={handleDeleteConfirm}
+        onCancel={handleDeleteCancel}
+        catalogName={catalogToDelete?.name}
+      />
+    </main>
   );
 }

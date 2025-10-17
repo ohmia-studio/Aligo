@@ -25,15 +25,28 @@ export async function sigIn(email: string, password: string) {
 
 export async function requestPassword(email: string) {
   const supabase = await getSupabaseServer();
+  // Usar redirectTo dinámico basado en el entorno
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
   const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: 'http://localhost:3000/new-password',
+    redirectTo: `${baseUrl}/new-password`,
   });
   return error;
 }
 
-export async function updatePassword(newPassword: string) {
-  // Requiere que la sesión ya esté activa en las cookies (PKCE exchange hecho en el cliente)
+export async function updatePassword(newPassword: string, code: string) {
+  // Requiere que la sesión ya esté activa en las cookies (session establecida desde server-side reset)
   const supabase = await getSupabaseServer();
+
+  const { data, error: errorRecuperacion } =
+    await supabase.auth.exchangeCodeForSession(code);
+  console.log(errorRecuperacion);
+  if (errorRecuperacion) {
+    return {
+      status: 400,
+      message: 'El enlace de recuperación no es válido',
+      data: null,
+    };
+  }
   const { error } = await supabase.auth.updateUser({ password: newPassword });
   if (error) {
     return error;

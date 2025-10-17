@@ -1,6 +1,6 @@
 import { EmployeesTableClient } from '@/components/employees/EmployeesTableClient';
 import { EmployeesTableSkeleton } from '@/components/employees/EmployeesTableSkeleton';
-import { getAllWorkers } from '@/features/workers/listWorkers';
+import { getAllWorkers } from '@/features/employees/actions/listWorkers';
 import { Suspense } from 'react';
 
 async function EmployeesTableContent() {

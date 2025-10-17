@@ -27,9 +27,12 @@ export async function requestResetPassword(email: string): Promise<Result> {
   }
 }
 
-export async function resetPassword(newPassword: string): Promise<Result> {
+export async function resetPassword(
+  newPassword: string,
+  code: string
+): Promise<Result> {
   try {
-    const error = await updatePassword(newPassword);
+    const error = await updatePassword(newPassword, code);
     if (error) {
       return {
         status: 400,
@@ -54,6 +57,7 @@ export async function updatePasswordAction(
   formData: FormData
 ): Promise<Result> {
   const newPassword = String(formData.get('newPassword') || '');
+  const code = String(formData.get('code') || '');
   if (!newPassword || newPassword.length < 6) {
     return {
       status: 400,
@@ -62,5 +66,5 @@ export async function updatePasswordAction(
       data: null,
     };
   }
-  return await resetPassword(newPassword);
+  return await resetPassword(newPassword, code);
 }
