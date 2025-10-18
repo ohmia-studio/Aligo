@@ -29,8 +29,7 @@ export function EmployeesTableClient({ empleados }: { empleados: Employee[] }) {
     setSelected(next);
   };
 
-  const allSelected =
-    empleados.length > 0 && selected.size === empleados.length;
+  const allSelected = empleados.length > 0 && selected.size === empleados.length;
   const toggleSelectAll = () => {
     if (allSelected) setSelected(new Set());
     else setSelected(new Set(empleados.map((e) => e.id)));
@@ -53,7 +52,6 @@ export function EmployeesTableClient({ empleados }: { empleados: Employee[] }) {
 
   const performDelete = async () => {
     if (toDeleteIds.length === 0) return;
-    // if single, set loadingId; if multiple, set loadingBulk
     const isSingle = toDeleteIds.length === 1;
     if (isSingle) setLoadingId(toDeleteIds[0]);
     else setLoadingBulk(true);
@@ -63,11 +61,8 @@ export function EmployeesTableClient({ empleados }: { empleados: Employee[] }) {
       toDeleteIds.forEach((id) => formData.append('selected', String(id)));
 
       const res = await deleteEmployeeAction(formData);
-      toast[res.status === 200 ? 'success' : 'error'](
-        res.message || 'Resultado desconocido'
-      );
+      toast[res.status === 200 ? 'success' : 'error'](res.message || 'Resultado desconocido');
 
-      // limpiar selección y refrescar datos
       setSelected((prev) => {
         const next = new Set(prev);
         toDeleteIds.forEach((id) => next.delete(id));
@@ -91,7 +86,7 @@ export function EmployeesTableClient({ empleados }: { empleados: Employee[] }) {
         <div className="flex items-center gap-2">
           <button
             className="rounded-xl bg-gradient-to-r from-green-500 to-green-400 px-5 py-2 font-semibold text-white shadow-md transition hover:from-green-600 hover:to-green-500"
-            onClick={() => console.log('Agregar empleado')}
+            onClick={() => router.push('/dashboard/empleados/alta')}
           >
             + Agregar empleado
           </button>
@@ -108,29 +103,14 @@ export function EmployeesTableClient({ empleados }: { empleados: Employee[] }) {
           <button
             onClick={handleBulkDelete}
             disabled={loadingBulk || selected.size === 0}
-            className="flex items-center gap-2 rounded bg-red-600 px-4 py-2 text-white disabled:opacity-50"
+            className="rounded bg-red-600 px-4 py-2 text-white disabled:opacity-50 flex items-center gap-2"
             aria-label="Eliminar seleccionados"
           >
             {loadingBulk ? (
               <>
-                <svg
-                  className="h-4 w-4 animate-spin"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                  />
+                <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
                 </svg>
                 Eliminando...
               </>
@@ -154,42 +134,24 @@ export function EmployeesTableClient({ empleados }: { empleados: Employee[] }) {
                   aria-label="Seleccionar todo"
                 />
               </th>
-              <th className="px-4 py-3 text-left font-semibold whitespace-nowrap text-black">
-                DNI
-              </th>
-              <th className="px-4 py-3 text-left font-semibold whitespace-nowrap text-black">
-                Nombre
-              </th>
-              <th className="px-4 py-3 text-left font-semibold whitespace-nowrap text-black">
-                Apellido
-              </th>
-              <th className="px-4 py-3 text-left font-semibold whitespace-nowrap text-black">
-                Correo
-              </th>
-              <th className="px-4 py-3 text-center font-semibold whitespace-nowrap text-black">
-                Editar
-              </th>
-              <th className="px-4 py-3 text-center font-semibold whitespace-nowrap text-black">
-                Eliminar
-              </th>
+              <th className="px-4 py-3 text-left font-semibold whitespace-nowrap text-black">DNI</th>
+              <th className="px-4 py-3 text-left font-semibold whitespace-nowrap text-black">Nombre</th>
+              <th className="px-4 py-3 text-left font-semibold whitespace-nowrap text-black">Apellido</th>
+              <th className="px-4 py-3 text-left font-semibold whitespace-nowrap text-black">Correo</th>
+              <th className="px-4 py-3 text-center font-semibold whitespace-nowrap text-black">Editar</th>
+              <th className="px-4 py-3 text-center font-semibold whitespace-nowrap text-black">Eliminar</th>
             </tr>
           </thead>
           <tbody className="text-black">
             {empleados.length === 0 ? (
               <tr>
-                <td
-                  colSpan={7}
-                  className="px-4 py-8 text-center text-base text-gray-400"
-                >
+                <td colSpan={7} className="px-4 py-8 text-center text-base text-gray-400">
                   No hay empleados registrados.
                 </td>
               </tr>
             ) : (
               empleados.map((emp) => (
-                <tr
-                  key={emp.id}
-                  className="border-t text-black transition-colors last:border-b hover:bg-green-50"
-                >
+                <tr key={emp.id} className="border-t text-black transition-colors last:border-b hover:bg-green-50">
                   <td className="px-4 py-3 whitespace-nowrap text-black">
                     <input
                       type="checkbox"
@@ -199,18 +161,10 @@ export function EmployeesTableClient({ empleados }: { empleados: Employee[] }) {
                       aria-label={`Seleccionar empleado ${emp.nombre || ''}`}
                     />
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-black">
-                    {emp.dni}
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-black">
-                    {emp.nombre}
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-black">
-                    {emp.apellido}
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-black">
-                    {emp.email}
-                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap text-black">{emp.dni}</td>
+                  <td className="px-4 py-3 whitespace-nowrap text-black">{emp.nombre}</td>
+                  <td className="px-4 py-3 whitespace-nowrap text-black">{emp.apellido}</td>
+                  <td className="px-4 py-3 whitespace-nowrap text-black">{emp.email}</td>
                   <td className="px-4 py-3 text-center">
                     <button
                       className="rounded-full bg-blue-500 p-2 text-white hover:bg-blue-600 focus:ring-2 focus:ring-blue-300 focus:outline-none"
@@ -228,24 +182,9 @@ export function EmployeesTableClient({ empleados }: { empleados: Employee[] }) {
                       disabled={loadingId === emp.id}
                     >
                       {loadingId === emp.id ? (
-                        <svg
-                          className="h-4 w-4 animate-spin"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                        >
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                          />
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                          />
+                        <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
                         </svg>
                       ) : (
                         <Trash size={18} />
@@ -262,18 +201,11 @@ export function EmployeesTableClient({ empleados }: { empleados: Employee[] }) {
       {/* Modal */}
       {confirmOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div
-            className="absolute inset-0 bg-black/50"
-            onClick={() => setConfirmOpen(false)}
-          />
+          <div className="absolute inset-0 bg-black/50" onClick={() => setConfirmOpen(false)} />
           <div className="relative z-10 w-full max-w-lg rounded-lg bg-white p-6 shadow-xl">
-            <h3 className="mb-2 text-lg font-semibold text-gray-800">
-              Confirmar baja
-            </h3>
+            <h3 className="mb-2 text-lg font-semibold text-gray-800">Confirmar baja</h3>
             <p className="mb-4 text-sm text-gray-600">
-              Vas a eliminar {toDeleteIds.length} empleado
-              {toDeleteIds.length > 1 ? 's' : ''}. Esta acción no se puede
-              deshacer.
+              Vas a eliminar {toDeleteIds.length} empleado{toDeleteIds.length > 1 ? 's' : ''}. Esta acción no se puede deshacer.
             </p>
 
             <div className="mb-4 max-h-40 overflow-auto rounded border bg-gray-50 p-3">
@@ -282,13 +214,8 @@ export function EmployeesTableClient({ empleados }: { empleados: Employee[] }) {
                   const e = empleados.find((x) => x.id === id);
                   return (
                     <li key={String(id)} className="py-1">
-                      <strong>
-                        {[e?.nombre, e?.apellido].filter(Boolean).join(' ') ||
-                          '—'}
-                      </strong>
-                      <span className="ml-2 text-gray-500">
-                        ({e?.email || 'sin email'})
-                      </span>
+                      <strong>{[e?.nombre, e?.apellido].filter(Boolean).join(' ') || '—'}</strong>
+                      <span className="ml-2 text-gray-500">({e?.email || 'sin email'})</span>
                     </li>
                   );
                 })}

@@ -80,7 +80,7 @@ export default function AltaEmpleadoPage() {
               name="dni"
               value={form.dni}
               onChange={handleChange}
-              placeholder="Ej. 12345678"
+              placeholder="Ej. 26345678"
               required
               className="mt-1 w-full rounded border px-3 py-2 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-indigo-200 focus:outline-none"
               disabled={loading}
