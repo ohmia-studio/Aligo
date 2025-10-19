@@ -6,40 +6,40 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 
 type Manual = {
-  id: string | number;
-  title?: string;
+  key: string;
   file_name?: string;
   url?: string;
-  created_at?: string;
+  size?: number;
+  lastModified?: string | null;
 };
 
 export default function ManualList({ manuals }: { manuals: Manual[] }) {
-  const [selected, setSelected] = useState<Set<string | number>>(new Set());
+  const [selected, setSelected] = useState<Set<string>>(new Set());
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [toDeleteIds, setToDeleteIds] = useState<Array<string | number>>([]);
+  const [toDeleteKeys, setToDeleteKeys] = useState<string[]>([]);
   const [loadingBulk, setLoadingBulk] = useState(false);
-  const [loadingId, setLoadingId] = useState<string | number | null>(null);
+  const [loadingKey, setLoadingKey] = useState<string | null>(null);
   const router = useRouter();
 
-  const toggle = (id: string | number) => {
+  const toggle = (key: string) => {
     const next = new Set(selected);
-    if (next.has(id)) next.delete(id);
-    else next.add(id);
+    if (next.has(key)) next.delete(key);
+    else next.add(key);
     setSelected(next);
   };
 
   const allSelected = manuals.length > 0 && selected.size === manuals.length;
   const toggleSelectAll = () => {
     if (allSelected) setSelected(new Set());
-    else setSelected(new Set(manuals.map((m) => m.id)));
+    else setSelected(new Set(manuals.map((m) => m.key)));
   };
 
-  const openConfirmFor = (ids: Array<string | number>) => {
-    setToDeleteIds(ids);
+  const openConfirmFor = (keys: string[]) => {
+    setToDeleteKeys(keys);
     setConfirmOpen(true);
   };
 
-  const handleSingleDelete = (id: string | number) => openConfirmFor([id]);
+  const handleSingleDelete = (key: string) => openConfirmFor([key]);
 
   const handleBulkDelete = () => {
     if (selected.size === 0) {
@@ -50,14 +50,14 @@ export default function ManualList({ manuals }: { manuals: Manual[] }) {
   };
 
   const performDelete = async () => {
-    if (toDeleteIds.length === 0) return;
-    const isSingle = toDeleteIds.length === 1;
-    if (isSingle) setLoadingId(toDeleteIds[0]);
+    if (toDeleteKeys.length === 0) return;
+    const isSingle = toDeleteKeys.length === 1;
+    if (isSingle) setLoadingKey(toDeleteKeys[0]);
     else setLoadingBulk(true);
 
     try {
       const formData = new FormData();
-      toDeleteIds.forEach((id) => formData.append('selected', String(id)));
+      toDeleteKeys.forEach((k) => formData.append('selected', k));
 
       const res = await deleteManualAction(formData);
       if (res?.status === 200) {
@@ -65,12 +65,12 @@ export default function ManualList({ manuals }: { manuals: Manual[] }) {
         // limpiar selección
         setSelected((prev) => {
           const next = new Set(prev);
-          toDeleteIds.forEach((id) => next.delete(id));
+          toDeleteKeys.forEach((k) => next.delete(k));
           return next;
         });
         router.refresh();
         setConfirmOpen(false);
-        setToDeleteIds([]);
+        setToDeleteKeys([]);
       } else {
         toast.error(res?.message || 'Error eliminando manuales');
       }
@@ -78,7 +78,7 @@ export default function ManualList({ manuals }: { manuals: Manual[] }) {
       console.error(err);
       toast.error('Error inesperado al eliminar');
     } finally {
-      if (isSingle) setLoadingId(null);
+      if (isSingle) setLoadingKey(null);
       else setLoadingBulk(false);
     }
   };
@@ -110,9 +110,9 @@ export default function ManualList({ manuals }: { manuals: Manual[] }) {
           <thead>
             <tr>
               <th className="w-12 p-2"></th>
-              <th className="p-2 text-left">Título</th>
-              <th className="p-2 text-left">Archivo</th>
-              <th className="p-2 text-left">Fecha</th>
+              <th className="p-2 text-left">Título / Archivo</th>
+              <th className="p-2 text-left">Tamaño</th>
+              <th className="p-2 text-left">Modificado</th>
               <th className="p-2 text-center">Acciones</th>
             </tr>
           </thead>
@@ -125,44 +125,50 @@ export default function ManualList({ manuals }: { manuals: Manual[] }) {
               </tr>
             ) : (
               manuals.map((m) => (
-                <tr key={String(m.id)} className="border-t">
+                <tr key={m.key} className="border-t">
                   <td className="p-2">
                     <input
                       type="checkbox"
-                      checked={selected.has(m.id)}
-                      onChange={() => toggle(m.id)}
+                      checked={selected.has(m.key)}
+                      onChange={() => toggle(m.key)}
                       className="h-4 w-4"
                     />
                   </td>
-                  <td className="p-2">{m.title}</td>
                   <td className="p-2">
-                    {m.file_name ? (
-                      <a
-                        href={m.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-indigo-600"
-                      >
-                        {m.file_name}
-                      </a>
-                    ) : (
-                      '—'
-                    )}
+                    <a
+                      href={m.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="block max-w-sm truncate font-medium text-indigo-600"
+                    >
+                      {m.file_name}
+                    </a>
                   </td>
                   <td className="p-2">
-                    {m.created_at
-                      ? new Date(m.created_at).toLocaleString()
+                    {m.size ? `${(m.size / 1024).toFixed(1)} KB` : '—'}
+                  </td>
+                  <td className="p-2">
+                    {m.lastModified
+                      ? new Date(m.lastModified).toLocaleString()
                       : '—'}
                   </td>
                   <td className="p-2 text-center">
                     <div className="flex items-center justify-center gap-2">
                       <button
                         className="rounded bg-red-500 px-3 py-1 text-white"
-                        onClick={() => handleSingleDelete(m.id)}
-                        disabled={loadingId === m.id}
+                        onClick={() => handleSingleDelete(m.key)}
+                        disabled={loadingKey === m.key}
                       >
-                        {loadingId === m.id ? '...' : 'Eliminar'}
+                        {loadingKey === m.key ? '...' : 'Eliminar'}
                       </button>
+                      <a
+                        href={m.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="rounded bg-gray-100 px-3 py-1 text-sm"
+                      >
+                        Ver
+                      </a>
                     </div>
                   </td>
                 </tr>
@@ -184,21 +190,19 @@ export default function ManualList({ manuals }: { manuals: Manual[] }) {
               Confirmar eliminación
             </h3>
             <p className="mb-4 text-sm text-gray-600">
-              Vas a eliminar {toDeleteIds.length} manual
-              {toDeleteIds.length > 1 ? 'es' : ''}. Esta acción no se puede
+              Vas a eliminar {toDeleteKeys.length} manual
+              {toDeleteKeys.length > 1 ? 'es' : ''}. Esta acción no se puede
               deshacer.
             </p>
 
             <div className="mb-4 max-h-40 overflow-auto rounded border bg-gray-50 p-3">
               <ul className="text-sm text-gray-800">
-                {toDeleteIds.map((id) => {
-                  const item = manuals.find((x) => x.id === id);
+                {toDeleteKeys.map((k) => {
+                  const item = manuals.find((x) => x.key === k);
                   return (
-                    <li key={String(id)} className="py-1">
-                      <strong>{item?.title || '—'}</strong>
-                      <span className="ml-2 text-gray-500">
-                        ({item?.file_name || '—'})
-                      </span>
+                    <li key={k} className="py-1">
+                      <strong>{item?.file_name || '—'}</strong>
+                      <span className="ml-2 text-gray-500">({k})</span>
                     </li>
                   );
                 })}
@@ -210,7 +214,7 @@ export default function ManualList({ manuals }: { manuals: Manual[] }) {
                 className="rounded border px-4 py-2 text-sm"
                 onClick={() => {
                   setConfirmOpen(false);
-                  setToDeleteIds([]);
+                  setToDeleteKeys([]);
                 }}
                 type="button"
               >
@@ -221,7 +225,7 @@ export default function ManualList({ manuals }: { manuals: Manual[] }) {
                 onClick={performDelete}
                 type="button"
               >
-                Eliminar {toDeleteIds.length > 1 ? 'seleccionados' : 'manual'}
+                Eliminar {toDeleteKeys.length > 1 ? 'seleccionados' : 'manual'}
               </button>
             </div>
           </div>

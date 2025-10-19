@@ -44,7 +44,6 @@ export async function getManualsByIds(ids: Array<string | number>) {
 
 export async function uploadManualFile(key: string, file: File | Blob) {
   try {
-    // seguridad: validar tamaño/type si hace falta
     const arrayBuffer = await (file as File).arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
@@ -53,23 +52,27 @@ export async function uploadManualFile(key: string, file: File | Blob) {
       Key: key,
       Body: buffer,
       ContentType: (file as any).type || 'application/pdf',
+      // Forzar descarga como catálogo (igual que en features/catalogs/catalogs.ts)
+      ContentDisposition: `attachment; filename="${(file as any).name ?? key}"`,
     });
 
     const resp = await r2.send(cmd);
-    // r2 response no lanza error si ok; pero lo logueamos
     console.log('[uploadManualFile] uploaded', {
       key,
       bucket: BUCKET,
-      resp: !!resp,
+      httpStatus: resp?.$metadata?.httpStatusCode ?? null,
     });
 
-    const publicUrl = `${process.env.NEXT_PUBLIC_R2_URL?.replace(/\/$/, '')}/${BUCKET}/${encodeURI(key)}`;
-    return ok({ path: key, url: publicUrl });
+    // Construir URL igual que en catalogs.ts
+    const fileUrl = `https://${BUCKET}.${process.env.R2_ACCOUNT_ID}.r2.dev/${key}`;
+
+    return ok({ path: key, url: fileUrl });
   } catch (err: any) {
-    console.error(
-      '[uploadManualFile] error uploading to R2:',
-      err?.message ?? err
-    );
+    console.error('[uploadManualFile] error uploading to R2:', {
+      message: err?.message ?? err,
+      code: err?.Code ?? err?.code ?? null,
+      httpStatus: err?.$metadata?.httpStatusCode ?? null,
+    });
     return fail(err);
   }
 }

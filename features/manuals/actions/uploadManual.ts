@@ -1,14 +1,12 @@
 'use server';
+
 import { Result } from '@/interfaces/server-response-interfaces';
-import {
-  createManualRow,
-  removeManualFile,
-  uploadManualFile,
-} from '../manualRepository';
+import { removeManualFile, uploadManualFile } from '../manualRepository';
 
 export async function uploadManualAction(formData: FormData): Promise<Result> {
   const file = formData.get('file') as File | null;
   const title = formData.get('title')?.toString().trim() ?? '';
+
   if (!file || !title) {
     return {
       status: 400,
@@ -17,11 +15,13 @@ export async function uploadManualAction(formData: FormData): Promise<Result> {
     };
   }
 
-  const safeKey = `${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
+  // Guardar siempre dentro de la carpeta "manuales/"
+  const safeKey = `manuales/${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
 
   try {
     const uploadResp = await uploadManualFile(safeKey, file);
     if (uploadResp.error) {
+      console.error('[uploadManualAction] upload error:', uploadResp.error);
       return {
         status: 500,
         message: 'Error subiendo archivo',
@@ -29,43 +29,28 @@ export async function uploadManualAction(formData: FormData): Promise<Result> {
       };
     }
 
-    const row = {
-      title,
-      file_path: uploadResp.data.path,
-      file_name: file.name,
-      content_type: (file as any).type,
-      size: file.size,
-      url: uploadResp.data.url,
-      created_at: new Date().toISOString(),
-    };
-
-    const createResp = await createManualRow(row);
-    if (createResp.error) {
-      // rollback archivo
-      try {
-        await removeManualFile(safeKey);
-      } catch (_) {}
-      return {
-        status: 500,
-        message: 'Error guardando metadata',
-        data: createResp.error,
-      };
-    }
-
+    // Devolvemos la info del upload (no guardamos en DB)
     return {
       status: 200,
       message: 'Manual subido correctamente',
-      data: createResp.data,
+      data: {
+        title,
+        file_name: file.name,
+        file_path: uploadResp.data.path,
+        content_type: (file as any).type,
+        size: file.size,
+        url: uploadResp.data.url ?? uploadResp.data.url,
+      },
     };
-  } catch (err) {
-    console.error('uploadManualAction error:', err);
+  } catch (err: any) {
+    console.error('[uploadManualAction] unexpected error:', err);
     try {
       await removeManualFile(safeKey);
     } catch (_) {}
     return {
       status: 500,
       message: 'Error inesperado al subir manual',
-      data: null,
+      data: err?.message ?? String(err),
     };
   }
 }

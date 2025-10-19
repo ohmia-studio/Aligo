@@ -3,26 +3,31 @@
 import CatalogListSkeleton from '@/components/catalogs/CatalogListSkeleton';
 import ManualList from '@/components/manuals/ManualList';
 import ManualUploadForm from '@/components/manuals/ManualUploadForm';
-import { listManuals } from '@/features/manuals/manuals';
-import { Suspense, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
+type Manual = {
+  key: string;
+  file_name?: string;
+  url?: string;
+  size?: number;
+  lastModified?: string | null;
+};
+
 export default function ManualsPage() {
-  const [manuals, setManuals] = useState<any[]>([]);
+  const [manuals, setManuals] = useState<Manual[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchManuals = async () => {
     setIsLoading(true);
     try {
-      const res = await listManuals();
-      if (res.success) {
-        setManuals(res.manuals);
-      } else {
-        toast.error(res.error || 'Error al cargar manuales');
-      }
-    } catch (err) {
-      console.error('fetchManuals error:', err);
-      toast.error('Error al cargar manuales');
+      const res = await fetch('/api/manuales', { cache: 'no-store' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      setManuals(json.manuals ?? []);
+    } catch (err: any) {
+      console.error('[ManualsPage] fetchManuals error:', err);
+      toast.error('Error cargando manuales');
     } finally {
       setIsLoading(false);
     }
@@ -37,13 +42,13 @@ export default function ManualsPage() {
   };
 
   return (
-    <Suspense fallback={<div className="p-6">Cargando manuales…</div>}>
+    <>
       <header className="mb-8 flex flex-col items-center gap-2 text-center">
         <h1 className="text-3xl font-extrabold tracking-tight text-blue-500 sm:text-4xl">
           Gestión de Manuales
         </h1>
         <p className="text-base text-gray-700 sm:text-lg">
-          Sube y gestiona tus manuales (PDF) de manera simple y segura
+          Sube y gestiona tus manuales (PDF)
         </p>
       </header>
 
@@ -62,6 +67,6 @@ export default function ManualsPage() {
           )}
         </article>
       </section>
-    </Suspense>
+    </>
   );
 }
