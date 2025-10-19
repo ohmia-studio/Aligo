@@ -74,6 +74,19 @@ export default function DashboardHome() {
                 </span>
               </Link>
             </li>
+
+            {/* Nuevo botón para acceder a la gestión de manuales */}
+            <li>
+              <Link
+                href="/dashboard/manuales"
+                className="flex flex-col items-center justify-center gap-2 rounded-xl bg-indigo-600 px-6 py-6 font-semibold text-white shadow-lg transition hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-400 focus:outline-none"
+              >
+                <span className="text-xl">Manuales</span>
+                <span className="text-sm font-normal text-indigo-100">
+                  Gestión de manuales
+                </span>
+              </Link>
+            </li>
           </ul>
         </section>
       </main>
