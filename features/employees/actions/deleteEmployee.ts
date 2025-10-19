@@ -1,7 +1,10 @@
 'use server';
-
 import { Result } from '@/interfaces/server-response-interfaces';
-import { supabaseAdmin } from '@/lib/supabase/supabaseAdmin';
+import {
+  deleteAuthUser,
+  deletePersonaByIds,
+  getPersonAuthIdsByIds,
+} from './employeeRepository';
 
 export async function deleteEmployeeAction(
   formData: FormData
@@ -14,40 +17,47 @@ export async function deleteEmployeeAction(
       data: null,
     };
   }
-
   const ids = selected.map((s) => (isNaN(Number(s)) ? s : Number(s)));
 
   try {
-    // obtener auth_id si existen
-    const { data: persons, error: selErr } = await supabaseAdmin
-      .from('Persona')
-      .select('id, auth_id')
-      .in('id', ids);
-    if (selErr)
+    const { data: persons, error: selErr } = await getPersonAuthIdsByIds(ids);
+    if (selErr) {
+      console.error('Error obteniendo personas:', selErr);
       return { status: 500, message: 'Error al obtener empleados', data: null };
+    }
 
-    // eliminar en tabla Persona
-    const { error: delErr } = await supabaseAdmin
-      .from('Persona')
-      .delete()
-      .in('id', ids);
-    if (delErr)
+    const { error: delErr } = await deletePersonaByIds(ids);
+    if (delErr) {
+      console.error('Error borrando Persona:', delErr);
       return {
         status: 500,
         message: 'Error al eliminar empleados',
         data: null,
       };
+    }
 
-    // borrar usuarios en Auth (si tenían auth_id) — opcional/asincrónico según tu preferencia
+    const authErrors: any[] = [];
     for (const p of Array.isArray(persons) ? persons : []) {
       if (p?.auth_id) {
         try {
-          await supabaseAdmin.auth.admin.deleteUser(p.auth_id);
+          const { error } = await deleteAuthUser(p.auth_id);
+          if (error)
+            authErrors.push({
+              auth_id: p.auth_id,
+              message: error.message || error,
+            });
         } catch (e) {
-          // log y continuar
-          console.warn('Error borrando usuario auth:', p.auth_id, e);
+          authErrors.push({ auth_id: p.auth_id, message: e });
         }
       }
+    }
+
+    if (authErrors.length > 0) {
+      return {
+        status: 206,
+        message: 'Eliminados, pero hubo errores borrando usuarios de Auth',
+        data: { authErrors },
+      };
     }
 
     return {
@@ -56,7 +66,7 @@ export async function deleteEmployeeAction(
       data: null,
     };
   } catch (err) {
-    console.error(err);
+    console.error('Error inesperado en deleteEmployeeAction:', err);
     return {
       status: 500,
       message: 'Error inesperado en el servidor',
