@@ -13,7 +13,19 @@ type Manual = {
   lastModified?: string | null;
 };
 
-export default function ManualList({ manuals }: { manuals: Manual[] }) {
+type ManualListProps = {
+  manuals: Manual[];
+  onDelete?: (key: string) => void;
+  onDownload?: (m: Manual) => void;
+  onRefresh?: () => void;
+};
+
+export default function ManualList({
+  manuals,
+  onDelete,
+  onDownload,
+  onRefresh,
+}: ManualListProps) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [toDeleteKeys, setToDeleteKeys] = useState<string[]>([]);
@@ -62,15 +74,15 @@ export default function ManualList({ manuals }: { manuals: Manual[] }) {
       const res = await deleteManualAction(formData);
       if (res?.status === 200) {
         toast.success(res.message || 'Manuales eliminados');
-        // limpiar selección
         setSelected((prev) => {
           const next = new Set(prev);
           toDeleteKeys.forEach((k) => next.delete(k));
           return next;
         });
-        router.refresh();
         setConfirmOpen(false);
         setToDeleteKeys([]);
+        if (onRefresh) onRefresh();
+        else router.refresh();
       } else {
         toast.error(res?.message || 'Error eliminando manuales');
       }
@@ -83,107 +95,127 @@ export default function ManualList({ manuals }: { manuals: Manual[] }) {
     }
   };
 
+  const handleView = (m: Manual) => {
+    if (onDownload) {
+      onDownload(m);
+      return;
+    }
+    if (m.url) {
+      window.open(m.url, '_blank');
+    } else {
+      toast.error('No hay URL disponible para este archivo');
+    }
+  };
+
   return (
-    <div className="w-full max-w-4xl">
-      <div className="mb-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <button
-            className="rounded bg-gray-100 px-3 py-1 text-sm"
-            onClick={toggleSelectAll}
+    <div className="rounded-lg bg-white p-6 shadow-md">
+      <h2 className="mb-4 text-xl font-semibold text-gray-900">
+        Manuales Subidos ({manuals.length})
+      </h2>
+
+      {manuals.length === 0 ? (
+        <div className="py-8 text-center text-gray-500">
+          <svg
+            className="mx-auto h-12 w-12 text-gray-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
           >
-            {allSelected ? 'Deseleccionar todo' : 'Seleccionar todo'}
-          </button>
-          <button
-            onClick={handleBulkDelete}
-            disabled={loadingBulk || selected.size === 0}
-            className="rounded bg-red-600 px-4 py-2 text-white disabled:opacity-50"
-          >
-            {loadingBulk
-              ? 'Eliminando...'
-              : `Eliminar seleccionados (${selected.size})`}
-          </button>
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            />
+          </svg>
+          <p className="mt-2">No hay manuales subidos</p>
+          <p className="text-sm">Sube tu primer manual usando el formulario</p>
         </div>
-      </div>
+      ) : (
+        <div className="space-y-3">
+          {manuals.map((m) => (
+            <div
+              key={m.key}
+              className="flex items-center justify-between rounded-lg border border-gray-200 p-3 hover:bg-gray-50"
+            >
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-gray-900">
+                  {m.file_name ?? m.key}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {m.size ? `${(m.size / 1024).toFixed(1)} KB` : '—'} •{' '}
+                  {m.lastModified
+                    ? new Date(m.lastModified).toLocaleDateString()
+                    : '—'}
+                </p>
+              </div>
 
-      <div className="overflow-auto rounded border bg-white">
-        <table className="w-full table-fixed text-sm">
-          <thead>
-            <tr>
-              <th className="w-12 p-2"></th>
-              <th className="p-2 text-left">Título / Archivo</th>
-              <th className="p-2 text-left">Tamaño</th>
-              <th className="p-2 text-left">Modificado</th>
-              <th className="p-2 text-center">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {manuals.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="p-6 text-center text-gray-500">
-                  No hay manuales.
-                </td>
-              </tr>
-            ) : (
-              manuals.map((m) => (
-                <tr key={m.key} className="border-t">
-                  <td className="p-2">
-                    <input
-                      type="checkbox"
-                      checked={selected.has(m.key)}
-                      onChange={() => toggle(m.key)}
-                      className="h-4 w-4"
+              <div className="ml-4 flex items-center space-x-2">
+                <button
+                  onClick={() =>
+                    onDownload
+                      ? onDownload(m)
+                      : window.open(m.url ?? '#', '_blank')
+                  }
+                  className="text-sm font-medium text-blue-600 hover:text-blue-800"
+                  title="Descargar"
+                >
+                  <svg
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                     />
-                  </td>
-                  <td className="p-2">
-                    <a
-                      href={m.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="block max-w-sm truncate font-medium text-indigo-600"
-                    >
-                      {m.file_name}
-                    </a>
-                  </td>
-                  <td className="p-2">
-                    {m.size ? `${(m.size / 1024).toFixed(1)} KB` : '—'}
-                  </td>
-                  <td className="p-2">
-                    {m.lastModified
-                      ? new Date(m.lastModified).toLocaleString()
-                      : '—'}
-                  </td>
-                  <td className="p-2 text-center">
-                    <div className="flex items-center justify-center gap-2">
-                      <button
-                        className="rounded bg-red-500 px-3 py-1 text-white"
-                        onClick={() => handleSingleDelete(m.key)}
-                        disabled={loadingKey === m.key}
-                      >
-                        {loadingKey === m.key ? '...' : 'Eliminar'}
-                      </button>
-                      <a
-                        href={m.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="rounded bg-gray-100 px-3 py-1 text-sm"
-                      >
-                        Ver
-                      </a>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+                  </svg>
+                </button>
 
-      {/* Modal */}
+                <button
+                  onClick={() => handleSingleDelete(m.key)}
+                  className="text-sm font-medium text-red-600 hover:text-red-800"
+                  title="Eliminar"
+                >
+                  <svg
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <button
+        onClick={onRefresh}
+        className="mt-4 text-sm font-medium text-blue-600 hover:text-blue-800"
+      >
+        ↻ Actualizar lista
+      </button>
+
+      {/* Confirm modal */}
       {confirmOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div
             className="absolute inset-0 bg-black/40"
-            onClick={() => setConfirmOpen(false)}
+            onClick={() => {
+              setConfirmOpen(false);
+              setToDeleteKeys([]);
+            }}
           />
           <div className="relative z-10 w-full max-w-lg rounded bg-white p-6 shadow-lg">
             <h3 className="mb-2 text-lg font-semibold">

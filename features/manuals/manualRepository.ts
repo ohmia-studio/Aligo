@@ -79,10 +79,23 @@ export async function uploadManualFile(key: string, file: File | Blob) {
 
 export async function removeManualFile(path: string) {
   try {
+    const BUCKET =
+      process.env.R2_BUCKET_MANUALES ||
+      process.env.R2_BUCKET_NAME ||
+      'catalogos';
+    const PREFIX = process.env.R2_MANUALES_PREFIX ?? 'manuales/';
+
+    // Validar que la key pertenezca al prefijo esperado
+    if (!path.startsWith(PREFIX)) {
+      return fail({ message: 'Archivo no válido para eliminar' }, 400);
+    }
+
     const cmd = new DeleteObjectCommand({ Bucket: BUCKET, Key: path });
     await r2.send(cmd);
-    return ok(null);
-  } catch (err) {
+
+    return ok({ message: 'Archivo eliminado correctamente' });
+  } catch (err: any) {
+    console.error('[removeManualFile] error:', err);
     return fail(err);
   }
 }

@@ -37,8 +37,19 @@ export default function ManualsPage() {
     fetchManuals();
   }, []);
 
-  const handleUploadSuccess = () => {
-    fetchManuals();
+  const handleUploadSuccess = () => fetchManuals();
+
+  // descarga centralizada (igual que en catalogos)
+  const handleDownload = (m: Manual) => {
+    const url =
+      m.url || `${process.env.NEXT_PUBLIC_R2_URL}/${encodeURIComponent(m.key)}`;
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = m.file_name || 'manual.pdf';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    toast.success(`Descargando: ${m.file_name || 'manual'}`);
   };
 
   return (
@@ -48,7 +59,7 @@ export default function ManualsPage() {
           Gestión de Manuales
         </h1>
         <p className="text-base text-gray-700 sm:text-lg">
-          Sube y gestiona tus manuales (PDF)
+          Sube y gestiona tus manuales PDF de manera simple y segura
         </p>
       </header>
 
@@ -59,11 +70,13 @@ export default function ManualsPage() {
 
         <article className="w-full lg:w-1/2">
           {isLoading ? (
-            <div className="p-6">
-              <CatalogListSkeleton />
-            </div>
+            <CatalogListSkeleton />
           ) : (
-            <ManualList manuals={manuals} />
+            <ManualList
+              manuals={manuals}
+              onRefresh={fetchManuals}
+              onDownload={handleDownload}
+            />
           )}
         </article>
       </section>
