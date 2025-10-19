@@ -26,72 +26,46 @@ export default function ManualList({
   onDownload,
   onRefresh,
 }: ManualListProps) {
-  const [selected, setSelected] = useState<Set<string>>(new Set());
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [toDeleteKeys, setToDeleteKeys] = useState<string[]>([]);
-  const [loadingBulk, setLoadingBulk] = useState(false);
-  const [loadingKey, setLoadingKey] = useState<string | null>(null);
+  const [deletingKey, setDeletingKey] = useState<string | null>(null);
+  const [loadingDelete, setLoadingDelete] = useState(false);
   const router = useRouter();
 
-  const toggle = (key: string) => {
-    const next = new Set(selected);
-    if (next.has(key)) next.delete(key);
-    else next.add(key);
-    setSelected(next);
-  };
-
-  const allSelected = manuals.length > 0 && selected.size === manuals.length;
-  const toggleSelectAll = () => {
-    if (allSelected) setSelected(new Set());
-    else setSelected(new Set(manuals.map((m) => m.key)));
-  };
-
-  const openConfirmFor = (keys: string[]) => {
-    setToDeleteKeys(keys);
+  const openConfirm = (key: string) => {
+    setDeletingKey(key);
     setConfirmOpen(true);
   };
 
-  const handleSingleDelete = (key: string) => openConfirmFor([key]);
-
-  const handleBulkDelete = () => {
-    if (selected.size === 0) {
-      toast.error('Seleccioná al menos un manual');
-      return;
-    }
-    openConfirmFor(Array.from(selected));
+  const closeConfirm = () => {
+    setConfirmOpen(false);
+    setDeletingKey(null);
   };
 
   const performDelete = async () => {
-    if (toDeleteKeys.length === 0) return;
-    const isSingle = toDeleteKeys.length === 1;
-    if (isSingle) setLoadingKey(toDeleteKeys[0]);
-    else setLoadingBulk(true);
+    if (!deletingKey) return;
+    setLoadingDelete(true);
 
     try {
-      const formData = new FormData();
-      toDeleteKeys.forEach((k) => formData.append('selected', k));
-
-      const res = await deleteManualAction(formData);
-      if (res?.status === 200) {
-        toast.success(res.message || 'Manuales eliminados');
-        setSelected((prev) => {
-          const next = new Set(prev);
-          toDeleteKeys.forEach((k) => next.delete(k));
-          return next;
-        });
-        setConfirmOpen(false);
-        setToDeleteKeys([]);
-        if (onRefresh) onRefresh();
-        else router.refresh();
+      // permitir override por props (page puede manejar delete)
+      if (onDelete) {
+        await onDelete(deletingKey);
       } else {
-        toast.error(res?.message || 'Error eliminando manuales');
+        const formData = new FormData();
+        formData.append('selected', deletingKey);
+        const res = await deleteManualAction(formData);
+        if (!res || res.status !== 200)
+          throw new Error(res?.message || 'Error eliminando manual');
       }
+
+      toast.success('Manual eliminado');
+      closeConfirm();
+      if (onRefresh) onRefresh();
+      else router.refresh();
     } catch (err) {
-      console.error(err);
-      toast.error('Error inesperado al eliminar');
+      console.error('delete error', err);
+      toast.error((err as any)?.message ?? 'Error eliminando manual');
     } finally {
-      if (isSingle) setLoadingKey(null);
-      else setLoadingBulk(false);
+      setLoadingDelete(false);
     }
   };
 
@@ -100,11 +74,8 @@ export default function ManualList({
       onDownload(m);
       return;
     }
-    if (m.url) {
-      window.open(m.url, '_blank');
-    } else {
-      toast.error('No hay URL disponible para este archivo');
-    }
+    if (m.url) window.open(m.url, '_blank');
+    else toast.error('No hay URL disponible para este archivo');
   };
 
   return (
@@ -152,11 +123,7 @@ export default function ManualList({
 
               <div className="ml-4 flex items-center space-x-2">
                 <button
-                  onClick={() =>
-                    onDownload
-                      ? onDownload(m)
-                      : window.open(m.url ?? '#', '_blank')
-                  }
+                  onClick={() => handleView(m)}
                   className="text-sm font-medium text-blue-600 hover:text-blue-800"
                   title="Descargar"
                 >
@@ -176,9 +143,10 @@ export default function ManualList({
                 </button>
 
                 <button
-                  onClick={() => handleSingleDelete(m.key)}
+                  onClick={() => openConfirm(m.key)}
                   className="text-sm font-medium text-red-600 hover:text-red-800"
                   title="Eliminar"
+                  disabled={loadingDelete}
                 >
                   <svg
                     className="h-5 w-5"
@@ -207,47 +175,39 @@ export default function ManualList({
         ↻ Actualizar lista
       </button>
 
-      {/* Confirm modal */}
-      {confirmOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {/* Confirm modal (solo eliminación individual) */}
+      {confirmOpen && deletingKey && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          role="dialog"
+          aria-modal="true"
+        >
           <div
             className="absolute inset-0 bg-black/40"
-            onClick={() => {
-              setConfirmOpen(false);
-              setToDeleteKeys([]);
-            }}
+            onClick={closeConfirm}
           />
           <div className="relative z-10 w-full max-w-lg rounded bg-white p-6 shadow-lg">
-            <h3 className="mb-2 text-lg font-semibold">
-              Confirmar eliminación
+            <h3 className="mb-2 text-lg font-semibold text-gray-900">
+              ¿Confirmás eliminar este manual?
             </h3>
-            <p className="mb-4 text-sm text-gray-600">
-              Vas a eliminar {toDeleteKeys.length} manual
-              {toDeleteKeys.length > 1 ? 'es' : ''}. Esta acción no se puede
-              deshacer.
+            <p className="mb-4 text-sm text-gray-700">
+              Se eliminará permanentemente el manual seleccionado. Esta acción
+              no se puede deshacer.
             </p>
 
-            <div className="mb-4 max-h-40 overflow-auto rounded border bg-gray-50 p-3">
-              <ul className="text-sm text-gray-800">
-                {toDeleteKeys.map((k) => {
-                  const item = manuals.find((x) => x.key === k);
-                  return (
-                    <li key={k} className="py-1">
-                      <strong>{item?.file_name || '—'}</strong>
-                      <span className="ml-2 text-gray-500">({k})</span>
-                    </li>
-                  );
-                })}
-              </ul>
+            <div className="mb-4 rounded border bg-gray-50 p-3">
+              <p className="text-sm text-gray-800">
+                <strong>
+                  {manuals.find((x) => x.key === deletingKey)?.file_name ??
+                    deletingKey}
+                </strong>
+              </p>
             </div>
 
             <div className="flex justify-end gap-2">
               <button
                 className="rounded border px-4 py-2 text-sm"
-                onClick={() => {
-                  setConfirmOpen(false);
-                  setToDeleteKeys([]);
-                }}
+                onClick={closeConfirm}
                 type="button"
               >
                 Cancelar
@@ -256,8 +216,9 @@ export default function ManualList({
                 className="rounded bg-red-600 px-4 py-2 text-sm font-semibold text-white"
                 onClick={performDelete}
                 type="button"
+                disabled={loadingDelete}
               >
-                Eliminar {toDeleteKeys.length > 1 ? 'seleccionados' : 'manual'}
+                {loadingDelete ? 'Eliminando...' : 'Eliminar'}
               </button>
             </div>
           </div>
