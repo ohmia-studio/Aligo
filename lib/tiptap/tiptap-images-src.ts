@@ -26,23 +26,22 @@ export function extractImageSrcsFromJSON(json: any): string[] {
 export function replaceImageSrcsInJSON(node: any, mapping: Record<string, string>): any {
     if (!node || typeof node !== 'object') return node;
 
-    const copy = Array.isArray(node) ? [...node] : { ...node };
+    // ✅ Evitar perder propiedades internas
+    const copy: any = Array.isArray(node) ? [] : { ...node };
 
-    if (
-        !Array.isArray(node) &&
-        node.attrs &&
-        node.attrs.src &&
-        mapping[node.attrs.src]
-    ) {
-        copy.attrs = { ...node.attrs, src: mapping[node.attrs.src] };
+    if (node.type === 'image' && node.attrs) {
+        const newSrc = mapping[node.attrs.src];
+        copy.attrs = {
+            ...node.attrs,
+            src: newSrc ?? node.attrs.src, // mantener todos los demás attrs intactos
+        };
     }
+
     if (node.content) {
-        copy.content = node.content.map((c: any) =>
-            replaceImageSrcsInJSON(c, mapping)
-        );
+        copy.content = node.content.map((c: any) => replaceImageSrcsInJSON(c, mapping));
+    } else if (Array.isArray(node)) {
+        return node.map((c: any) => replaceImageSrcsInJSON(c, mapping));
     }
-    if (Array.isArray(node)) {
-        return copy.map((c: any) => replaceImageSrcsInJSON(c, mapping));
-    }
+
     return copy;
-};
+}

@@ -6,7 +6,17 @@ export interface New {
     bucket_folder_url: string;
 };
 
+export interface NewEdit extends New {
+    id: number;
+}
+
+export interface UpdateNewsInput extends New {
+    antiguoTitulo: string;
+    removedImageUrls: string[]; // URLs de imágenes eliminadas
+}
+
 export interface TagItem {
     nombre: string;
     descripcion?: string;
 }
+
