@@ -3,7 +3,9 @@ import Alert from '@/components/ui/FormAlert';
 import PasswordInput from '@/components/ui/PasswordInput';
 import { authAction } from '@/features/auth/auth';
 import { useAuthForm } from '@/hooks/useAuthForm';
-
+import { setUser } from '@/store/authSlice';
+import { useRouter } from 'next/navigation';
+import { useDispatch } from 'react-redux';
 export default function AuthForm() {
   const {
     state,
@@ -18,6 +20,8 @@ export default function AuthForm() {
     activateResetCooldown,
   } = useAuthForm();
 
+  const dispatch = useDispatch();
+  const router = useRouter();
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     updateField(e.target.name, e.target.value);
   };
@@ -34,6 +38,26 @@ export default function AuthForm() {
     if (result?.message) {
       const isSuccess = result.status === 200;
       setMessage(result.message, !isSuccess);
+
+      // Si es login exitoso, guardar usuario en Redux
+      if (isSuccess && !state.resetMode && result.data?.user) {
+        dispatch(
+          setUser({
+            id: result.data.user.id,
+            email: result.data.user.email,
+            rol: result.data.role,
+            name: result.data.user.email, // Por ahora usamos el email como nombre
+          })
+        );
+        // Redirigir según el rol
+        if (router) {
+          if (result.data.role === 'admin') {
+            router.push('/dashboard/admin');
+          } else {
+            router.push('/dashboard');
+          }
+        }
+      }
 
       // Si es reset exitoso, activar cooldown
       if (isSuccess && state.resetMode) {

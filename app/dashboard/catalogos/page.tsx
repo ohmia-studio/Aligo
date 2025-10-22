@@ -1,20 +1,30 @@
 'use client';
 
+import {
+  PermissionGuard,
+  usePermissions,
+} from '@/components/auth/PermissionGuard';
 import CatalogList from '@/components/catalogs/CatalogList';
 import CatalogListSkeleton from '@/components/catalogs/CatalogListSkeleton';
 import CatalogUploadForm from '@/components/catalogs/CatalogUploadForm';
 import DeleteCatalogModal from '@/components/catalogs/DeleteCatalogModal';
 import { deleteCatalog, listCatalogs } from '@/features/catalogs/catalogs';
 import { Catalog } from '@/interfaces/catalogs-interfaces';
+import { RootState } from '@/store/store';
 import { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { toast } from 'sonner';
 
 export default function CatalogosPage() {
   const [catalogs, setCatalogs] = useState<Catalog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [catalogToDelete, setCatalogToDelete] = useState<Catalog | null>(null);
 
+  // Hook para verificar permisos basado en rol
+  const { isAdmin } = usePermissions();
+  const [catalogToDelete, setCatalogToDelete] = useState<Catalog | null>(null);
+  const user = useSelector((state: RootState) => state.auth.user);
+  console.log('Usuario en Redux:', user);
   const fetchCatalogs = async () => {
     try {
       setIsLoading(true);
@@ -32,6 +42,9 @@ export default function CatalogosPage() {
   };
 
   const handleDeleteRequest = (catalogId: string) => {
+    // Solo permitir eliminación a admins
+    if (!isAdmin) return;
+
     const catalog = catalogs.find((c) => c.id === catalogId) || null;
     setCatalogToDelete(catalog);
     setDeleteModalOpen(true);
@@ -92,19 +105,26 @@ export default function CatalogosPage() {
           Sube y gestiona tus catálogos PDF de manera simple y segura
         </p>
       </header>
-      <section className="flex flex-col gap-8 rounded-xl bg-gray-50 p-4 shadow-sm lg:flex-row lg:items-start">
-        <article className="w-full lg:w-1/2">
-          <CatalogUploadForm onUploadSuccess={handleUploadSuccess} />
-        </article>
-        <article className="w-full lg:w-1/2">
+      <section
+        className={`flex flex-col gap-8 rounded-xl bg-gray-50 p-4 shadow-sm ${isAdmin ? 'lg:flex-row lg:items-start' : ''}`}
+      >
+        {/* Formulario de upload - solo para admins */}
+        <PermissionGuard requiredRoles={['admin']}>
+          <article className="w-full lg:w-1/2">
+            <CatalogUploadForm onUploadSuccess={handleUploadSuccess} />
+          </article>
+        </PermissionGuard>
+
+        {/* Lista de catálogos */}
+        <article className={`w-full ${isAdmin ? 'lg:w-1/2' : ''}`}>
           {isLoading ? (
             <CatalogListSkeleton />
           ) : (
             <CatalogList
               catalogs={catalogs}
-              onDelete={handleDeleteRequest}
+              onDelete={isAdmin ? handleDeleteRequest : undefined}
               onDownload={handleDownload}
-              onRefresh={fetchCatalogs}
+              onRefresh={isAdmin ? fetchCatalogs : undefined}
             />
           )}
         </article>

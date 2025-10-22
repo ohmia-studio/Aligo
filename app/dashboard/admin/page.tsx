@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-export default function DashboardHome() {
+export default function DashboardHomeAdmin() {
   return (
     <>
       <header className="flex w-full flex-col items-center py-4">
@@ -47,6 +47,35 @@ export default function DashboardHome() {
             </li>
           </ul>
         </nav>
+        <section aria-labelledby="gestion-title" className="mt-2 w-full">
+          <h2 id="gestion-title" className="sr-only">
+            Gestión
+          </h2>
+          <ul className="grid w-full grid-cols-1 gap-6 sm:grid-cols-2">
+            <li>
+              <Link
+                href="/dashboard/contactos"
+                className="flex flex-col items-center justify-center gap-2 rounded-xl bg-yellow-400 px-6 py-6 font-semibold text-black shadow-lg transition hover:bg-yellow-500 focus:ring-2 focus:ring-yellow-300 focus:outline-none"
+              >
+                <span className="text-xl">Contactos</span>
+                <span className="text-sm font-normal text-yellow-900">
+                  Gestión de contactos
+                </span>
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/dashboard/empleados"
+                className="flex flex-col items-center justify-center gap-2 rounded-xl bg-gray-500 px-6 py-6 font-semibold text-white shadow-lg transition hover:bg-gray-900 focus:ring-2 focus:ring-gray-400 focus:outline-none"
+              >
+                <span className="text-xl">Empleados</span>
+                <span className="text-sm font-normal text-gray-200">
+                  Administra tu equipo
+                </span>
+              </Link>
+            </li>
+          </ul>
+        </section>
       </main>
       <footer className="mx-auto mt-8 flex w-full max-w-3xl flex-wrap items-center justify-center gap-6 border-t border-gray-200 py-6">
         <span className="text-sm text-gray-500">
