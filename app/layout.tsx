@@ -1,3 +1,4 @@
+import { ReduxProvider } from '@/store/ReduxProvider';
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { Toaster } from 'sonner';
@@ -28,8 +29,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
-        <Toaster richColors position="top-right" />
+        <ReduxProvider>
+          {children}
+          <Toaster richColors position="top-right" />
+        </ReduxProvider>
       </body>
     </html>
   );
