@@ -5,6 +5,7 @@ import {
   findPersonaByDniOrEmail,
   insertPersona,
 } from './employeeRepository';
+import { sendConfirmationEmail } from './sendConfirmationEmail'; // nueva importación
 
 type AltaEmpleadoParams = {
   dni: string;
@@ -107,6 +108,19 @@ export async function altaEmpleadoAction(formData: FormData): Promise<Result> {
         status: 500,
         message: 'Error al guardar datos del empleado',
         data: null,
+      };
+    }
+
+    // después de insertar Persona y antes de return success:
+    try {
+      await sendConfirmationEmail(email, passwordTemporal, nombre);
+    } catch (mailErr) {
+      console.error('Error enviando email de confirmación:', mailErr);
+      // no hacemos rollback por fallo de mail, pero podés decidir marcarlo en la respuesta
+      return {
+        status: 200,
+        message: `Empleado registrado, pero no se pudo enviar el correo a ${email}.`,
+        data: { passwordTemporal },
       };
     }
 
