@@ -41,8 +41,7 @@ export default function ManualsPage() {
 
   // descarga centralizada (igual que en catalogos)
   const handleDownload = (m: Manual) => {
-    const url =
-      m.url || `${process.env.NEXT_PUBLIC_R2_URL}/${encodeURIComponent(m.key)}`;
+    const url = `/api/manuales?key=${encodeURIComponent(m.key)}&name=${encodeURIComponent(m.file_name || m.key)}`;
     const a = document.createElement('a');
     a.href = url;
     a.download = m.file_name || 'manual.pdf';

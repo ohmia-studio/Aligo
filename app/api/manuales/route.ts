@@ -1,26 +1,52 @@
 export const runtime = 'nodejs';
 
 import { r2 } from '@/lib/claudflare/r2';
-import { ListObjectsV2Command } from '@aws-sdk/client-s3';
+import { GetObjectCommand, ListObjectsV2Command } from '@aws-sdk/client-s3';
 import { NextResponse } from 'next/server';
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    const BUCKET = process.env.R2_BUCKET_MANUALES || 'catalogos';
-    // prefijo donde guardás manuales dentro del bucket (si guardás en carpeta)
-    const PREFIX = process.env.R2_MANUALES_PREFIX ?? 'manuales/';
+    const { searchParams } = new URL(req.url);
+    const key = searchParams.get('key');
+    const name = searchParams.get('name') || key;
 
-    const cmd = new ListObjectsV2Command({
+    const BUCKET =
+      process.env.R2_BUCKET_MANUALES ||
+      process.env.R2_BUCKET_NAME ||
+      'catalogos';
+
+    // Si se pasó key => devolver el objeto (descarga)
+    if (key) {
+      const cmd = new GetObjectCommand({ Bucket: BUCKET, Key: key });
+      const resp = await r2.send(cmd);
+
+      const body: any = (resp as any).Body;
+      const headers = new Headers();
+      headers.set(
+        'Content-Type',
+        (resp as any).ContentType || 'application/pdf'
+      );
+      if ((resp as any).ContentLength)
+        headers.set('Content-Length', String((resp as any).ContentLength));
+      headers.set(
+        'Content-Disposition',
+        `attachment; filename="${encodeURIComponent(name || key)}"`
+      );
+
+      return new Response(body as any, { headers });
+    }
+
+    // Si no hay key => listar manuales
+    const PREFIX = process.env.R2_MANUALES_PREFIX ?? 'manuales/';
+    const cmdList = new ListObjectsV2Command({
       Bucket: BUCKET,
       Prefix: PREFIX,
       MaxKeys: 1000,
     });
-
-    const resp = await r2.send(cmd);
-    const contents = resp.Contents ?? [];
+    const listResp = await r2.send(cmdList);
+    const contents = listResp.Contents ?? [];
 
     const account = process.env.R2_ACCOUNT_ID;
-    // construir URL similar a la usada en uploads (ajustá si usás otro patrón)
     const base = process.env.NEXT_PUBLIC_R2_URL
       ? process.env.NEXT_PUBLIC_R2_URL.replace(/\/$/, '')
       : account
@@ -41,9 +67,9 @@ export async function GET() {
 
     return NextResponse.json({ manuals }, { status: 200 });
   } catch (err: any) {
-    console.error('API /api/manuales GET error:', err);
+    console.error('API /api/manuales error:', err);
     return NextResponse.json(
-      { error: { message: err?.message ?? 'Error listando manuales' } },
+      { error: err?.message || 'Error en endpoint /api/manuales' },
       { status: 500 }
     );
   }
