@@ -1,7 +1,6 @@
 'use server';
 import { Result } from '@/interfaces/server-response-interfaces';
 import { validateEmail } from '@/lib/validations';
-import { redirect } from 'next/navigation';
 import { loginUser } from './login';
 import { requestResetPassword, updatePasswordAction } from './resetPassword';
 export async function authAction(formData: FormData): Promise<Result> {
@@ -17,9 +16,7 @@ export async function authAction(formData: FormData): Promise<Result> {
     return await requestResetPassword(username);
   } else {
     const result = await loginUser({ email: username, password });
-    if (result.status === 200) {
-      redirect('/dashboard');
-    }
+    // Solo devolvemos el resultado, la redirección se hará en el cliente
     return result;
   }
 }

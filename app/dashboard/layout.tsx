@@ -2,9 +2,13 @@
 'use client';
 
 import { logoutUser } from '@/features/auth/logout';
+import { clearUser } from '@/store/authSlice';
+import { RootState } from '@/store/store';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+
 export default function DashboardLayout({
   children,
 }: {
@@ -13,13 +17,25 @@ export default function DashboardLayout({
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
-  const handleLogout = (formData: FormData) => {
+  const dispatch = useDispatch();
+
+  // Obtener usuario del estado (sin verificación de auth, eso lo maneja el middleware)
+  const user = useSelector((state: RootState) => state.auth.user);
+  const handleLogout = async () => {
     startTransition(async () => {
-      const result = await logoutUser();
-      if (result?.status >= 400) {
-        setError(result.message);
-      } else {
-        router.push('/');
+      try {
+        setError(null);
+        const result = await logoutUser();
+
+        if (result.status !== 200) {
+          setError(result.message);
+        } else {
+          // Limpiar el estado de Redux cuando el logout es exitoso
+          dispatch(clearUser());
+          router.push('/login');
+        }
+      } catch (err) {
+        setError('Ocurrió un error inesperado');
       }
     });
   };
@@ -50,7 +66,14 @@ export default function DashboardLayout({
               A
             </text>
           </svg>
-          Aligo Distribuidora
+          <div className="flex flex-col">
+            <span>Aligo Distribuidora</span>
+            {user && (
+              <span className="text-xs font-normal text-green-600 capitalize">
+                {user.rol} • {user.name}
+              </span>
+            )}
+          </div>
         </Link>
         <nav className="flex items-center gap-2">
           <Link

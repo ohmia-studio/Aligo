@@ -16,7 +16,9 @@ async function EmployeesTableContent() {
 
   return (
     <div className="p-8">
-      <h1 className="mb-6 text-2xl font-bold">Listado de empleados</h1>
+      <h1 className="mb-6 text-2xl font-bold text-black">
+        Listado de empleados
+      </h1>
       {empleados.length === 0 ? (
         <div className="text-center text-gray-500">
           No hay empleados registrados.

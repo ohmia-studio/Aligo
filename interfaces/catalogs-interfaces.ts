@@ -9,9 +9,9 @@ export interface Catalog {
 
 export interface CatalogListProps {
   catalogs: Catalog[];
-  onDelete: (catalogKey: string) => void | Promise<void>;
+  onDelete?: (catalogKey: string) => void | Promise<void>;
   onDownload: (catalog: Catalog) => void;
-  onRefresh: () => Promise<void>;
+  onRefresh?: () => Promise<void>;
 }
 export interface DeleteCatalogModalProps {
   open: boolean;
