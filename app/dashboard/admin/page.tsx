@@ -54,7 +54,7 @@ export default function DashboardHomeAdmin() {
           <ul className="grid w-full grid-cols-1 gap-6 sm:grid-cols-2">
             <li>
               <Link
-                href="/dashboard/contactos"
+                href="/dashboard/admin/contactos"
                 className="flex flex-col items-center justify-center gap-2 rounded-xl bg-yellow-400 px-6 py-6 font-semibold text-black shadow-lg transition hover:bg-yellow-500 focus:ring-2 focus:ring-yellow-300 focus:outline-none"
               >
                 <span className="text-xl">Contactos</span>
