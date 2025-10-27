@@ -1,11 +1,12 @@
 // app/dashboard/layout.tsx
 'use client';
 
+import AdminNavLinks from '@/components/ui/AdminNavLinks';
 import { logoutUser } from '@/features/auth/logout';
 import { clearUser } from '@/store/authSlice';
 import { RootState } from '@/store/store';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -17,6 +18,7 @@ export default function DashboardLayout({
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
+  const pathname = usePathname();
   const dispatch = useDispatch();
 
   // Obtener usuario del estado (sin verificación de auth, eso lo maneja el middleware)
@@ -40,11 +42,27 @@ export default function DashboardLayout({
     });
   };
 
+  // Oculta el header/nav si estás en /dashboard/admin o subrutas
+  const isAdminRoute = pathname?.startsWith('/dashboard/admin');
+
+  // Lógica para home y links según rol
+  const getHomeRoute = () => {
+    if (!user) return '/dashboard';
+    switch (user.rol) {
+      case 'admin':
+        return '/dashboard/admin';
+      case 'empleado':
+        return '/dashboard/empleados';
+      default:
+        return '/dashboard';
+    }
+  };
+
   return (
     <div className="flex min-h-screen flex-col bg-gradient-to-br from-green-100 via-white to-indigo-100">
       <header className="sticky top-0 z-30 flex items-center justify-between gap-4 border-b border-gray-200 bg-white/80 px-6 py-3 shadow-lg backdrop-blur-md">
         <Link
-          href="/dashboard"
+          href={getHomeRoute()}
           className="flex items-center gap-2 text-2xl font-extrabold tracking-tight text-green-700 transition hover:text-green-800"
         >
           <svg
@@ -76,6 +94,9 @@ export default function DashboardLayout({
           </div>
         </Link>
         <nav className="flex items-center gap-2">
+          {/* Links según rol */}
+          {user?.rol === 'admin' && <AdminNavLinks />}
+          {/* Otros roles pueden tener otros links aquí */}
           <Link
             href="/dashboard/catalogos"
             className="flex items-center gap-1 rounded-lg bg-green-100 px-3 py-1 font-medium text-green-700 transition hover:bg-green-200"
