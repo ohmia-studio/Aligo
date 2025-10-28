@@ -36,6 +36,17 @@ export default function DashboardHome() {
             </li>
             <li>
               <Link
+                href="/dashboard/manuales"
+                className="flex flex-col items-center justify-center gap-2 rounded-xl bg-green-500 px-6 py-6 font-semibold text-white shadow-lg transition hover:bg-green-600 focus:ring-2 focus:ring-green-400 focus:outline-none"
+              >
+                <span className="text-xl">Manuales</span>
+                <span className="text-sm font-normal text-green-100">
+                  Explora manuales
+                </span>
+              </Link>
+            </li>
+            <li>
+              <Link
                 href="/dashboard/news"
                 className="flex flex-col items-center justify-center gap-2 rounded-xl bg-green-500 px-6 py-6 font-semibold text-white shadow-lg transition hover:bg-green-600 focus:ring-2 focus:ring-green-400 focus:outline-none"
               >

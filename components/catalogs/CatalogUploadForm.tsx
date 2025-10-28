@@ -28,6 +28,27 @@ export default function CatalogUploadForm({
       return;
     }
 
+    // Validar que sea un PDF
+    if (selectedFile.type !== 'application/pdf') {
+      toast.error('Solo se permiten archivos PDF');
+      return;
+    }
+
+    // Validar tamaño del archivo (50MB máximo)
+    const maxSize = 50 * 1024 * 1024; // 50MB en bytes
+    if (selectedFile.size > maxSize) {
+      toast.error('El archivo es demasiado grande. Máximo permitido: 50MB');
+      return;
+    }
+
+    // Mostrar warning para archivos grandes
+    if (selectedFile.size > 10 * 1024 * 1024) {
+      // 10MB
+      toast.info(
+        'Archivo grande detectado. La subida puede tomar varios minutos.'
+      );
+    }
+
     setIsUploading(true);
 
     try {
@@ -125,7 +146,9 @@ export default function CatalogUploadForm({
 
       <div className="mt-4 text-xs text-gray-500">
         <p>• Solo archivos PDF</p>
+        <p>• Tamaño máximo: 50MB</p>
         <p>• El archivo se guardará de forma segura</p>
+        <p>• Archivos grandes pueden tardar varios minutos</p>
       </div>
     </div>
   );

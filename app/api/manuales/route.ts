@@ -15,23 +15,42 @@ export async function GET(req: Request) {
       process.env.R2_BUCKET_NAME ||
       'catalogos';
 
-    // Si se pasó key => devolver el objeto (descarga)
+    // Si se pasó key => devolver el objeto (descarga o visualización)
     if (key) {
+      const view = searchParams.get('view'); // Si es 'true', permitir visualización en línea
+
       const cmd = new GetObjectCommand({ Bucket: BUCKET, Key: key });
       const resp = await r2.send(cmd);
 
       const body: any = (resp as any).Body;
       const headers = new Headers();
+
+      // Configurar Content-Type
       headers.set(
         'Content-Type',
         (resp as any).ContentType || 'application/pdf'
       );
+
       if ((resp as any).ContentLength)
         headers.set('Content-Length', String((resp as any).ContentLength));
-      headers.set(
-        'Content-Disposition',
-        `attachment; filename="${encodeURIComponent(name || key)}"`
-      );
+
+      // Si view=true, permitir visualización en línea, sino forzar descarga
+      if (view === 'true') {
+        headers.set(
+          'Content-Disposition',
+          `inline; filename="${encodeURIComponent(name || key)}"`
+        );
+      } else {
+        headers.set(
+          'Content-Disposition',
+          `attachment; filename="${encodeURIComponent(name || key)}"`
+        );
+      }
+
+      // Headers para permitir visualización en iframe/embed
+      headers.set('X-Frame-Options', 'SAMEORIGIN');
+      headers.set('Access-Control-Allow-Origin', '*');
+      headers.set('Cache-Control', 'private, max-age=0, must-revalidate');
 
       return new Response(body as any, { headers });
     }

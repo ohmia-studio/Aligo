@@ -87,6 +87,13 @@ export default function CatalogosPage() {
     toast.success(`Descargando: ${catalog.name}`);
   };
 
+  const handleView = (catalog: Catalog) => {
+    window.open(
+      `/dashboard/catalogos/ver?key=${encodeURIComponent(catalog.fullKey)}&name=${encodeURIComponent(catalog.name)}`,
+      '_blank'
+    );
+  };
+
   const handleUploadSuccess = () => {
     fetchCatalogs();
   };
@@ -124,6 +131,7 @@ export default function CatalogosPage() {
               catalogs={catalogs}
               onDelete={isAdmin ? handleDeleteRequest : undefined}
               onDownload={handleDownload}
+              onView={handleView}
               onRefresh={isAdmin ? fetchCatalogs : undefined}
             />
           )}
