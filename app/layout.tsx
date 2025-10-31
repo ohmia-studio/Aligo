@@ -1,4 +1,6 @@
+import { ThemeToggle } from '@/components/tiptap/tiptap-templates/theme-toggle';
 import { ReduxProvider } from '@/store/ReduxProvider';
+import { TooltipProvider } from '@radix-ui/react-tooltip';
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { Toaster } from 'sonner';
@@ -25,13 +27,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ReduxProvider>
-          {children}
-          <Toaster richColors position="top-right" />
+          <TooltipProvider>
+            <ThemeToggle />
+            {children}
+            <Toaster richColors position="top-right" />
+          </TooltipProvider>
         </ReduxProvider>
       </body>
     </html>

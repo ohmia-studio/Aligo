@@ -1,7 +1,8 @@
 'use server';
 // features/news/news.ts
-import { New } from '@/interfaces/news-interfaces';
+import { New, UpdateNewsInput } from '@/interfaces/news-interfaces';
 import { Result } from '@/interfaces/server-response-interfaces';
+import { sanitizeForStorage } from '@/lib/storageStringCase';
 import { getSupabaseServer } from '@/lib/supabase/supabaseServer';
 
 // Por alguna razon el uploadDate (y siempre que recibo desde la BD la fecha, la recibo en String, por más de que esté el tipo de Date o TimeStamp)
@@ -14,11 +15,9 @@ export async function deleteNew(title: string, uploadDate: Date, folder: string)
 
     const { data: files, error: listError } = await supabaseServer.storage
       .from('Novedades')
-      .list(folder, { limit: 1000 });
+      .list(folder, { limit: 100 });
 
     if (listError) throw listError;
-
-    console.log('Archivos encontrados:', files);
 
     if (files && files.length > 0) {
       // Obtener todos los archivos de la carpeta del bucket. No se puede eliminar llamando unicamente a la carpeta
@@ -37,7 +36,7 @@ export async function deleteNew(title: string, uploadDate: Date, folder: string)
       data: null
     }
   } catch (err: any) {
-    console.error('Error en delteNew', err);
+    console.error('Error en deleteNew', err);
     return {
       status: 500,
       message: err?.message || 'unexpected error in deleteNew',
@@ -69,6 +68,54 @@ export async function deleteImagesOnError(path: string): Promise<Result> {
   }
 }
 
+// COMO OBTENGO LAS URL DE LAS IMAGENES ELIMINADAS?
+export async function deleteUnusedImage(
+  folder: string,
+  removedImageUrls: string[]
+) {
+  const supabaseServer = await getSupabaseServer();
+
+  const { error } = await supabaseServer.storage.from('Novedades').remove(removedImageUrls);
+  if (error) throw error;
+}
+
+export async function moveExistingImage(
+  oldUrl: string,
+  newUrl: string,
+  fileName: string
+): Promise<Result> {
+  const supabaseServer = await getSupabaseServer();
+  try {
+
+    const sanitizedOldUrl = sanitizeForStorage(oldUrl);
+    const sanitizedNewUrl = sanitizeForStorage(newUrl);
+    const sanitizedFileName = sanitizeForStorage(fileName);
+
+    const { data, error } = await supabaseServer.storage
+      .from('Novedades')
+      .move(sanitizedOldUrl.concat('/', sanitizedFileName), sanitizedNewUrl.concat('/', sanitizedFileName));
+
+    if (error) throw error;
+
+    const { data: publicUrl } = supabaseServer.storage
+      .from('Novedades')
+      .getPublicUrl(sanitizedNewUrl);
+
+    return {
+      status: 200,
+      message: 'Imagenes subidas correctamente',
+      data: publicUrl.publicUrl,
+    };
+  } catch (err: any) {
+    console.error('Error en moveExistingImage:', err);
+    return {
+      status: 500,
+      message: err?.message || 'unexpected error',
+      data: null,
+    };
+  }
+}
+
 export async function uploadNewImage(
   folderName: string,
   imageName: string,
@@ -76,16 +123,19 @@ export async function uploadNewImage(
 ): Promise<Result> {
   const supabaseServer = await getSupabaseServer();
   try {
+    const sanitizedFolder = sanitizeForStorage(folderName);
+    const sanitizedImage = sanitizeForStorage(imageName);
+
     const { data, error } = await supabaseServer.storage
       .from('Novedades')
-      .upload(`${folderName}/${imageName}`, file, { upsert: false });
+      .upload(`${sanitizedFolder}/${sanitizedImage}`, file, { upsert: false });
 
     if (error) throw error;
 
     // Obtener URL pública
     const { data: publicUrl } = supabaseServer.storage
       .from('Novedades')
-      .getPublicUrl(folderName);
+      .getPublicUrl(sanitizedFolder);
 
     return {
       status: 200,
@@ -98,6 +148,63 @@ export async function uploadNewImage(
       status: 500,
       message: err?.message || 'unexpected error',
       data: null,
+    };
+  }
+}
+
+export async function updateNew({ antiguoTitulo, titulo, tag, descripcion, created_at, removedImageUrls, bucket_folder_url }: UpdateNewsInput): Promise<Result> {
+  const supabaseServer = await getSupabaseServer();
+
+  try {
+    // Obtener la novedad actual
+    const { data: currentNew, error: fetchError } = await supabaseServer
+      .from('Novedad')
+      .select('*')
+      .eq('titulo', antiguoTitulo)
+      .eq('created_at', created_at.toISOString())
+      .single();
+
+    if (fetchError) throw fetchError;
+    if (!currentNew) throw new Error('Novedad no encontrada');
+
+    // Eliminar imágenes que ya no se usan
+    if (removedImageUrls.length > 0) {
+      const folder = currentNew.bucket_folder_url;
+      if (!folder) throw new Error('No se encontró la carpeta en el registro');
+
+      await deleteUnusedImage(folder, removedImageUrls);
+    }
+
+    // Actualizar registro en Supabase
+    const { error: updateError } = await supabaseServer
+      .from('Novedad')
+      .update({
+        titulo: titulo,
+        descripcion: descripcion,
+        tag: tag || null,
+        bucket_folder_url: bucket_folder_url
+      })
+      .eq('titulo', antiguoTitulo)
+      .eq('created_at', created_at.toISOString());
+
+    if (updateError) throw updateError;
+
+    return {
+      status: 200,
+      message: 'New updated',
+      data: {
+        ...currentNew,
+        titulo: titulo,
+        descripcion: descripcion,
+        tag: tag,
+      }
+    };
+  } catch (err: any) {
+    console.error('Error en updateNewsAction', err);
+    return {
+      status: 500,
+      message: err.message || 'Unexpected error in updateNewsAction',
+      data: null
     };
   }
 }
@@ -161,12 +268,35 @@ export async function retrieveNews(): Promise<Result> {
       .from('Novedad')
       .select('*')
       .order('created_at', { ascending: false })
-      .limit(7);
+      .limit(10);
 
     if (newError) {
       return { status: 500, message: newError.message, data: null };
     }
-    return { status: 200, message: 'ok', data: newData };
+    return { status: 200, message: 'News retrieved succesfully', data: newData };
+  } catch (err: any) {
+    console.error('Error en retrieveNews:', err);
+    return {
+      status: 500,
+      message: err?.message || 'unexpected error',
+      data: null,
+    };
+  }
+}
+
+export async function retrieveNew(id: number): Promise<Result> {
+  const supabaseServer = await getSupabaseServer();
+  try {
+    const { data: newData, error: newError } = await supabaseServer
+      .from('Novedad')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (newError) {
+      return { status: 500, message: newError.message, data: null };
+    }
+    return { status: 200, message: 'Single new retrieved succesfully', data: newData };
   } catch (err: any) {
     console.error('Error en retrieveNews:', err);
     return {

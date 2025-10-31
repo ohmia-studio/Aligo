@@ -28,8 +28,12 @@ export function Dialog({
         <AlertDialogDescription>{description}</AlertDialogDescription>
       </AlertDialogHeader>
       <AlertDialogFooter>
-        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-        <AlertDialogAction onClick={onConfirm}>{actionVerb}</AlertDialogAction>
+        <AlertDialogCancel className="hover:cursor-pointer">
+          Cancelar
+        </AlertDialogCancel>
+        <AlertDialogAction className="hover:cursor-pointer" onClick={onConfirm}>
+          {actionVerb}
+        </AlertDialogAction>
       </AlertDialogFooter>
     </AlertDialogContent>
   );

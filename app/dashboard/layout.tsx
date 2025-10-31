@@ -1,11 +1,10 @@
 // app/dashboard/layout.tsx
 'use client';
 
-import AdminNavLinks from '@/components/ui/AdminNavLinks';
+import AdminNavbar from '@/components/common/adminNavbar';
 import { logoutUser } from '@/features/auth/logout';
 import { clearUser } from '@/store/authSlice';
 import { RootState } from '@/store/store';
-import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -60,6 +59,7 @@ export default function DashboardLayout({
 
   return (
     <div className="flex min-h-screen flex-col bg-gradient-to-br from-green-100 via-white to-indigo-100">
+      {/*
       <header className="sticky top-0 z-30 flex items-center justify-between gap-4 border-b border-gray-200 bg-white/80 px-6 py-3 shadow-lg backdrop-blur-md">
         <Link
           href={getHomeRoute()}
@@ -94,9 +94,9 @@ export default function DashboardLayout({
           </div>
         </Link>
         <nav className="flex items-center gap-2">
-          {/* Links según rol */}
+          
           {user?.rol === 'admin' && <AdminNavLinks />}
-          {/* Otros roles pueden tener otros links aquí */}
+          
           <Link
             href="/dashboard/catalogos"
             className="flex items-center gap-1 rounded-lg bg-green-100 px-3 py-1 font-medium text-green-700 transition hover:bg-green-200"
@@ -140,18 +140,35 @@ export default function DashboardLayout({
           </form>
         </nav>
       </header>
+*/}
+      <AdminNavbar />
+      <div className="flex min-h-screen flex-col">
+        <header className="flex items-center justify-between p-4 shadow">
+          <h1 className="text-lg font-bold">Mi App</h1>
 
-      {error && (
-        <div className="bg-red-100 p-2 text-center text-sm text-red-700">
-          Error al cerrar sesión: {error}
-        </div>
-      )}
+          <form action={handleLogout}>
+            <button
+              type="submit"
+              disabled={isPending}
+              className="rounded bg-red-500 px-3 py-1 text-white hover:bg-red-600 disabled:opacity-50"
+            >
+              {isPending ? 'Cerrando...' : 'Cerrar sesión'}
+            </button>
+          </form>
+        </header>
 
-      <main className="animate-fade-in flex flex-1 flex-col items-center justify-center">
-        <div className="w-full max-w-5xl px-2 py-8 sm:px-6 lg:px-10">
-          {children}
-        </div>
-      </main>
+        {error && (
+          <div className="bg-red-100 p-2 text-center text-sm text-red-700">
+            Error al cerrar sesión: {error}
+          </div>
+        )}
+
+        <main className="animate-fade-in flex flex-1 flex-col items-center justify-center">
+          <div className="w-full max-w-5xl px-2 py-8 sm:px-6 lg:px-10">
+            {children}
+          </div>
+        </main>
+      </div>
     </div>
   );
 }

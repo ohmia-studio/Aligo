@@ -262,6 +262,29 @@ export async function loginUser({ email, password }: LoginParams) {
 }
 ```
 
+# 006 – 2025-10-15
+
+### Descripción del error
+
+Vulnerabilidad crítica de el paquete happy-Dom utilizado por TipTap. Permite la ejecución de codigo javascript no confiable por fuera del contexto de la VM, potencialmente derivando en ataques de tipo Remote Code Execution (RCE). Dicha vulnerabilidad afecta a versiones de happy-dom previas a la 20.0.0
+
+### Causa
+
+- Integración de TipTap al proyecto. Por defecto TipTap incluye como dependencia una version vulnerable y no actualizada de happy-dom para el uso del contenido desestructurado del editor de texto.
+
+### Solución aplicada
+
+1. Sobreescribir las versiones antiguas (overrides) utilizadas de happy-dom por al menos la 20.0.0 en el package.json
+   . Esto repercute en todas las dependencias que incluyen y utilizan happy-dom en el package-lock.json
+
+Agregar seguido del apartado "dependencies" o "devDependencies":
+
+```json
+ "overrides": {
+    "happy-dom": "^20.0.0"
+  }
+```
+
 ### Referencias
 
 - Supabase Docs – createClient
