@@ -55,65 +55,22 @@ export default async function GenericPDFViewPage({
   const pdfUrl = `${currentConfig.apiEndpoint}?key=${encodeURIComponent(key)}&name=${encodeURIComponent(name)}&view=true`;
   const downloadUrl = `${currentConfig.apiEndpoint}?key=${encodeURIComponent(key)}&name=${encodeURIComponent(name)}`;
 
-  return (
-    <div className="flex h-screen flex-col">
-      {/* Header con navegación - Solo en desktop */}
-      <header className="hidden items-center justify-between border-b bg-white px-4 py-3 shadow-sm md:flex">
-        <div className="flex items-center gap-4">
-          <Link
-            href={currentConfig.backUrl}
-            className="flex items-center gap-2 text-blue-600 hover:text-blue-800"
-          >
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-            <span className="hidden sm:inline">
-              Volver a {currentConfig.title}
-            </span>
-            <span className="sm:hidden">Volver</span>
-          </Link>
-        </div>
-        <div className="flex items-center gap-2">
-          <a
-            href={downloadUrl}
-            download={name}
-            className="flex items-center gap-2 rounded bg-green-600 px-3 py-2 text-sm text-white hover:bg-green-700"
-          >
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
-            </svg>
-            <span className="hidden sm:inline">Descargar</span>
-          </a>
-        </div>
-      </header>
+  // Determinar homeUrl y homeLabel según el rol
+  // Ejemplo: puedes obtener el rol del usuario desde contexto, session, etc.
+  // Aquí lo simulo con una variable (ajusta según tu lógica real)
+  const userRole = 'admin'; // Cambia esto por tu lógica real
+  const homeUrl = userRole === 'admin' ? '/dashboard/admin' : '/dashboard';
 
-      {/* Visor de PDF - Toma toda la altura disponible */}
-      <div className="flex-1 md:flex-1">
-        <BrowserPDFViewer
-          pdfUrl={pdfUrl}
-          catalogName={decodeURIComponent(name)}
-        />
-      </div>
+  return (
+    <div className="relative h-screen w-full bg-gray-100">
+      <BrowserPDFViewer
+        pdfUrl={pdfUrl}
+        catalogName={decodeURIComponent(name)}
+        downloadUrl={downloadUrl}
+        backUrl={currentConfig.backUrl}
+        backLabel={`Volver a ${currentConfig.title}`}
+        homeUrl={homeUrl}
+      />
     </div>
   );
 }

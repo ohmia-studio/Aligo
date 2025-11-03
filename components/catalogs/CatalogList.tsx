@@ -15,27 +15,11 @@ export default function CatalogList({
       </h2>
 
       {catalogs.length === 0 ? (
-        <div className="py-8 text-center text-gray-500">
-          <svg
-            className="mx-auto h-12 w-12 text-gray-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-            />
-          </svg>
-          <p className="mt-2">No hay catálogos subidos</p>
-          <p className="text-sm">
-            Sube tu primer catálogo usando el formulario
-          </p>
-        </div>
+        <p className="text-center text-sm text-gray-500">
+          No hay catálogos subidos aún.
+        </p>
       ) : (
-        <div className="space-y-3">
+        <div className="divide-y divide-gray-200">
           {catalogs.map((catalog) => (
             <div
               key={catalog.id}
@@ -49,66 +33,31 @@ export default function CatalogList({
                   {catalog.size} •{' '}
                   {new Date(catalog.lastModified).toLocaleDateString()}
                 </p>
+                {/* Botón Ver catálogo debajo del nombre */}
+                <div className="mt-3">
+                  {onView ? (
+                    <button
+                      onClick={() => onView(catalog)}
+                      className="w-full cursor-pointer rounded bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow transition hover:bg-green-700"
+                    >
+                      Ver catálogo
+                    </button>
+                  ) : (
+                    <a
+                      href={`/dashboard/catalogos/ver?key=${encodeURIComponent(
+                        catalog.fullKey
+                      )}&name=${encodeURIComponent(catalog.name)}`}
+                      className="block w-full cursor-pointer rounded bg-green-600 px-4 py-2 text-center text-sm font-semibold text-white shadow transition hover:bg-green-700"
+                    >
+                      Ver catálogo
+                    </a>
+                  )}
+                </div>
               </div>
-
               <div className="ml-4 flex items-center space-x-2">
-                {onView ? (
-                  <button
-                    onClick={() => onView(catalog)}
-                    className="text-sm font-medium text-green-600 hover:text-green-800"
-                    title="Ver PDF"
-                  >
-                    <svg
-                      className="h-5 w-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                      />
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                      />
-                    </svg>
-                  </button>
-                ) : (
-                  <a
-                    href={`/dashboard/catalogos/ver?key=${encodeURIComponent(catalog.fullKey)}&name=${encodeURIComponent(catalog.name)}`}
-                    className="text-sm font-medium text-green-600 hover:text-green-800"
-                    title="Ver PDF"
-                  >
-                    <svg
-                      className="h-5 w-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M15 12a3 3 0 11-6 0 3 3 0 616 0z"
-                      />
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                      />
-                    </svg>
-                  </a>
-                )}
-
                 <button
                   onClick={() => onDownload(catalog)}
-                  className="text-sm font-medium text-blue-600 hover:text-blue-800"
+                  className="cursor-pointer text-sm font-medium text-blue-600 hover:text-blue-800"
                   title="Descargar"
                 >
                   <svg
@@ -129,7 +78,7 @@ export default function CatalogList({
                 {onDelete && (
                   <button
                     onClick={() => onDelete(catalog.id)}
-                    className="text-sm font-medium text-red-600 hover:text-red-800"
+                    className="cursor-pointer text-sm font-medium text-red-600 hover:text-red-800"
                     title="Eliminar"
                   >
                     <svg
