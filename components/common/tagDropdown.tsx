@@ -32,7 +32,7 @@ export function TagDropdown({ tags, value, onChange, onCreateTag }: Props) {
 
   return (
     <>
-      <Select value={value} onValueChange={onChange}>
+      <Select name="tag" value={value} onValueChange={onChange}>
         <SelectTrigger className="w-[180px]">
           <SelectValue placeholder="Selecciona un tag" defaultValue={''} />{' '}
         </SelectTrigger>

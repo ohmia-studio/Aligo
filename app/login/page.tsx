@@ -1,9 +1,31 @@
 'use client';
 import AuthForm from '@/components/auth/AuthForm';
+import Link from 'next/link';
 
 export default function Page() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-indigo-100 via-white to-blue-200">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-indigo-100 via-white to-blue-200 px-4">
+      {/* Volver al home */}
+      <Link
+        href="/"
+        className="mt-4 mb-6 inline-flex items-center gap-2 text-sm font-medium text-indigo-700 hover:underline"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-4 w-4"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path
+            fillRule="evenodd"
+            d="M9.707 14.707a1 1 0 01-1.414 0L3.586 10l4.707-4.707a1 1 0 011.414 1.414L6.414 10l3.293 3.293a1 1 0 010 1.414z"
+            clipRule="evenodd"
+          />
+        </svg>
+        Volver al inicio
+      </Link>
+
       <div className="w-full max-w-md rounded-2xl border border-gray-100 bg-white/90 p-8 shadow-2xl">
         <div className="mb-6 flex flex-col items-center">
           <div className="mb-2 flex items-center gap-2">

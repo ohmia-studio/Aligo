@@ -16,7 +16,7 @@ export async function createNewsAction(payload: New) {
   const result = await uploadNew({
     created_at: payload.created_at,
     titulo: payload.titulo,
-    descripcion: payload.descripcion,
+    descripcion: JSON.parse(payload.descripcion),
     tag: payload.tag ?? null,
     bucket_folder_url: payload.bucket_folder_url,
   });
