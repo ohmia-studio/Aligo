@@ -65,7 +65,7 @@ export default function DashboardHomeAdmin() {
             </li>
             <li>
               <Link
-                href="/dashboard/empleados"
+                href="/dashboard/admin/empleados"
                 className="flex flex-col items-center justify-center gap-2 rounded-xl bg-gray-500 px-6 py-6 font-semibold text-white shadow-lg transition hover:bg-gray-900 focus:ring-2 focus:ring-gray-400 focus:outline-none"
               >
                 <span className="text-xl">Empleados</span>

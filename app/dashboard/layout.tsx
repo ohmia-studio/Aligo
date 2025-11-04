@@ -143,6 +143,7 @@ export default function DashboardLayout({
 */}
       <AdminNavbar />
       <div className="flex min-h-screen flex-col">
+        {/*
         <header className="flex items-center justify-between p-4 shadow">
           <h1 className="text-lg font-bold">Mi App</h1>
 
@@ -162,7 +163,7 @@ export default function DashboardLayout({
             Error al cerrar sesión: {error}
           </div>
         )}
-
+        */}
         <main className="animate-fade-in flex flex-1 flex-col items-center justify-center">
           <div className="w-full max-w-5xl px-2 py-8 sm:px-6 lg:px-10">
             {children}
