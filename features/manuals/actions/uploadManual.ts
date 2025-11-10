@@ -1,9 +1,14 @@
 'use server';
 
 import { Result } from '@/interfaces/server-response-interfaces';
+import { requireServerAuth } from '@/lib/auth/requireServerAuth';
 import { removeManualFile, uploadManualFile } from '../manualRepository';
 
 export async function uploadManualAction(formData: FormData): Promise<Result> {
+  const auth = await requireServerAuth({ allowedRoles: 'admin' });
+  if (!auth.ok) {
+    return { status: 401, message: 'Unauthorized', data: null };
+  }
   const file = formData.get('file') as File | null;
   const title = formData.get('title')?.toString().trim() ?? '';
 
