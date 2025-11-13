@@ -28,64 +28,72 @@ export async function insertContactServerAction(
 
     try {
       revalidatePath('/dashboard/admin/contactos');
-    } catch (e) {
-      // ignore if revalidation isn't available
+      redirect('/dashboard/admin/contactos');
+    } catch (e) {}
+  } catch (err: unknown) {
+    if (err instanceof Error && err.message === 'NEXT_REDIRECT') {
+      throw err;
     }
-    redirect('/dashboard/admin/contactos');
-  } catch (err) {
-    console.error('Error in insertContactServerAction', err);
+    console.error('insertContactServerAction error', err);
     throw err;
   }
 }
 
 export default function AddContactForm() {
   return (
-    <div className="mb-6 w-full max-w-4xl">
+    <section className="mb-6 w-full max-w-4xl">
       <form
         action={insertContactServerAction}
-        className="flex flex-col gap-2 rounded-lg border bg-white p-6 shadow-lg"
-        style={{ maxWidth: '900px' }}
+        className="flex max-w-[900px] flex-col gap-4 rounded-lg border bg-white p-6 shadow-lg"
       >
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <div className="flex-1">
-            <label className="mb-1 block text-sm font-medium text-gray-700">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-12">
+          <label htmlFor="nombre" className="block sm:col-span-6">
+            <span className="mb-1 block text-sm font-medium text-gray-700">
               Nombre *
-            </label>
+            </span>
             <input
+              id="nombre"
               name="nombre"
               required
-              className="w-full rounded border px-3 py-2 text-black"
+              type="text"
+              className="mt-1 w-full rounded border border-gray-300 bg-gray-50 px-3 py-2 text-black placeholder-gray-400 focus:ring-2 focus:ring-green-200 focus:outline-none"
             />
-          </div>
-          <div className="w-40">
-            <label className="mb-1 block text-sm font-medium text-gray-700">
+          </label>
+
+          <label htmlFor="telefono" className="block sm:col-span-2">
+            <span className="mb-1 block text-sm font-medium text-gray-700">
               Teléfono
-            </label>
+            </span>
             <input
+              id="telefono"
               name="telefono"
-              className="w-full rounded border px-3 py-2 text-black"
+              type="tel"
+              className="mt-1 w-full rounded border border-gray-300 bg-gray-50 px-3 py-2 text-black placeholder-gray-400 focus:ring-2 focus:ring-green-200 focus:outline-none"
             />
-          </div>
-          <div className="w-64">
-            <label className="mb-1 block text-sm font-medium text-gray-700">
+          </label>
+
+          <label htmlFor="email" className="block sm:col-span-4">
+            <span className="mb-1 block text-sm font-medium text-gray-700">
               Email
-            </label>
+            </span>
             <input
+              id="email"
               name="email"
               type="email"
-              className="w-full rounded border px-3 py-2 text-black"
+              className="mt-1 w-full rounded border border-gray-300 bg-gray-50 px-3 py-2 text-black placeholder-gray-400 focus:ring-2 focus:ring-green-200 focus:outline-none"
             />
-          </div>
+          </label>
         </div>
+
         <div className="mt-2 flex justify-end">
           <button
             type="submit"
-            className="rounded bg-green-600 px-4 py-2 text-white"
+            className="cursor-pointer rounded bg-green-600 px-4 py-2 text-white"
           >
             Crear contacto
           </button>
         </div>
       </form>
-    </div>
+    </section>
   );
 }
