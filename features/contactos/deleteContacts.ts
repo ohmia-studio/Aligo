@@ -1,11 +1,17 @@
 'use server';
 
 import { Result } from '@/interfaces/server-response-interfaces';
+import { requireServerAuth } from '@/lib/auth/requireServerAuth';
 import { deleteContactByIds } from './contactRepository';
 
 export async function deleteContactsAction(
   formData: FormData
 ): Promise<Result> {
+  const auth = await requireServerAuth({ allowedRoles: 'admin' });
+  if (!auth.ok) {
+    // acorde al patrón de tus actions: devolver objeto con success:false
+    return { status: 401, message: 'Unauthorized', data: null };
+  }
   const selected = formData.getAll('selected') as string[];
   if (!selected || selected.length === 0) {
     return {
