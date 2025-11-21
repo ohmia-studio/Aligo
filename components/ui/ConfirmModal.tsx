@@ -49,10 +49,18 @@ export default function ConfirmModal({
         )}
 
         <AlertDialogFooter>
-          <AlertDialogCancel>{cancelLabel}</AlertDialogCancel>
+          <AlertDialogCancel
+            className="!hover:text-gray-700 cursor-pointer bg-white !text-gray-700 hover:bg-gray-50"
+            disabled={loading}
+            aria-disabled={loading}
+          >
+            {cancelLabel}
+          </AlertDialogCancel>
           <AlertDialogAction
             onClick={() => onConfirm()}
-            className="bg-red-600 text-white"
+            className="!hover:bg-red-700 cursor-pointer !bg-red-600 !text-white"
+            disabled={loading}
+            aria-disabled={loading}
           >
             {loading ? 'Eliminando...' : confirmLabel}
           </AlertDialogAction>

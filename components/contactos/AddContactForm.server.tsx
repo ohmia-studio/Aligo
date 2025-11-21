@@ -28,19 +28,20 @@ export async function insertContactServerAction(
 
     try {
       revalidatePath('/dashboard/admin/contactos');
-    } catch (e) {
-      // ignore if revalidation isn't available
+      redirect('/dashboard/admin/contactos');
+    } catch (e) {}
+  } catch (err: unknown) {
+    if (err instanceof Error && err.message === 'NEXT_REDIRECT') {
+      throw err;
     }
-    redirect('/dashboard/admin/contactos');
-  } catch (err) {
-    console.error('Error in insertContactServerAction', err);
+    console.error('insertContactServerAction error', err);
     throw err;
   }
 }
 
 export default function AddContactForm() {
   return (
-    <div className="mb-6 w-full max-w-4xl">
+    <section className="mb-6 w-full max-w-4xl">
       <form
         action={insertContactServerAction}
         className="bg-container text-base-color/80 flex flex-col gap-2 rounded-lg border p-6 shadow-lg"
@@ -50,6 +51,7 @@ export default function AddContactForm() {
           <div className="flex-1">
             <label className="mb-1 block text-sm font-medium">Nombre *</label>
             <input
+              id="nombre"
               name="nombre"
               required
               className="border-base-color/20 focus:text-base-color w-full rounded border px-3 py-2"
@@ -58,6 +60,7 @@ export default function AddContactForm() {
           <div className="w-40">
             <label className="mb-1 block text-sm font-medium">Teléfono</label>
             <input
+              id="telefono"
               name="telefono"
               className="border-base-color/20 focus:text-base-color w-full rounded border px-3 py-2"
             />
@@ -65,12 +68,14 @@ export default function AddContactForm() {
           <div className="w-64">
             <label className="mb-1 block text-sm font-medium">Email</label>
             <input
+              id="email"
               name="email"
               type="email"
               className="border-base-color/20 focus:text-base-color w-full rounded border px-3 py-2"
             />
           </div>
         </div>
+
         <div className="mt-2 flex justify-end">
           <button
             type="submit"
@@ -80,6 +85,6 @@ export default function AddContactForm() {
           </button>
         </div>
       </form>
-    </div>
+    </section>
   );
 }

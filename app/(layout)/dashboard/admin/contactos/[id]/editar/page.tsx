@@ -2,10 +2,15 @@ import EditContactForm from '@/components/contactos/EditContactForm.server';
 import { getContactById } from '@/features/contactos/contactRepository';
 import Link from 'next/link';
 
-export default async function EditContactPage(context: {
+export default async function EditContactPage({
+  params,
+}: {
   params: { id: string };
 }) {
-  const result = await getContactById(context.params.id);
+  // In Next.js App Router params may be a thenable for streaming/APIs —
+  // await it before using properties to avoid the sync-dynamic-apis warning.
+  const resolvedParams = await params;
+  const result = await getContactById(resolvedParams.id);
   const contact = result?.data;
   if (!contact) {
     return (

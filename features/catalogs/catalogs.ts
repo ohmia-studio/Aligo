@@ -1,5 +1,6 @@
 'use server';
 import { Result } from '@/interfaces/server-response-interfaces';
+import { requireServerAuth } from '@/lib/auth/requireServerAuth';
 import { r2 } from '@/lib/cloudflare/r2';
 import {
   DeleteObjectCommand,
@@ -8,6 +9,11 @@ import {
 } from '@aws-sdk/client-s3';
 
 export async function uploadCatalogAction(formData: FormData): Promise<Result> {
+  const auth = await requireServerAuth({ allowedRoles: 'admin' });
+  if (!auth.ok) {
+    // acorde al patrón de tus actions: devolver objeto con success:false
+    return { status: 401, message: 'Unauthorized', data: null };
+  }
   try {
     const file = formData.get('file') as File;
 
@@ -122,7 +128,12 @@ export async function listCatalogs() {
   }
 }
 
-export async function deleteCatalog(catalogKey: string): Promise<Result> {
+export async function deleteCatalog(catalogKey: string) {
+  const auth = await requireServerAuth({ allowedRoles: 'admin' });
+  if (!auth.ok) {
+    // acorde al patrón de tus actions: devolver objeto con success:false
+    return { status: 401, message: 'Unauthorized', data: null };
+  }
   try {
     // Validar que la key pertenece a la carpeta catalogs
     if (!catalogKey.startsWith('catalogs/')) {

@@ -11,11 +11,20 @@ export async function updateContactServerAction(formData: FormData) {
   if (!id || !nombre || typeof nombre !== 'string' || nombre.trim() === '') {
     throw new Error('El nombre es requerido');
   }
+  // Interpret empty strings as an explicit intention to clear the field.
+  // FormData.get returns '' (empty string) when the input is present but empty,
+  // so we should include that value in the payload (not treat it as "no change").
+  const telefonoVal =
+    typeof telefono === 'string' ? String(telefono).trim() : undefined;
+  const emailVal = typeof email === 'string' ? String(email).trim() : undefined;
+
   const payload: any = {
     id,
     nombre: String(nombre).trim(),
-    telefono: telefono ? String(telefono).trim() : undefined,
-    email: email ? String(email).trim() : undefined,
+    // If the user cleared the input, telefonoVal/emailVal will be '' and we
+    // include that so the backend can update the field to an empty value.
+    telefono: typeof telefonoVal === 'undefined' ? undefined : telefonoVal,
+    email: typeof emailVal === 'undefined' ? undefined : emailVal,
   };
   const { error } = await updateContact(payload);
   if (error) throw new Error('Error actualizando contacto');

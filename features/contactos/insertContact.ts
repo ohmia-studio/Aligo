@@ -1,6 +1,7 @@
 'use server';
 
 import { Result } from '@/interfaces/server-response-interfaces';
+import { requireServerAuth } from '@/lib/auth/requireServerAuth';
 import { insertContact } from './contactRepository';
 
 export async function insertContactAction(payload: {
@@ -8,6 +9,11 @@ export async function insertContactAction(payload: {
   telefono?: string;
   email?: string;
 }): Promise<Result> {
+  const auth = await requireServerAuth({ allowedRoles: 'admin' });
+  if (!auth.ok) {
+    // acorde al patrón de tus actions: devolver objeto con success:false
+    return { status: 401, message: 'Unauthorized', data: null };
+  }
   try {
     const { data, error, status, message } = await insertContact(
       payload as any

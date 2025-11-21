@@ -81,7 +81,7 @@ export function EmployeesTableClient({ empleados }: { empleados: Employee[] }) {
         <div className="flex items-center gap-2">
           <button
             className="rounded-xl bg-gradient-to-r from-green-500 to-green-400 px-5 py-2 font-semibold text-white shadow-md transition hover:from-green-600 hover:to-green-500"
-            onClick={() => router.push('/dashboard/empleados/alta')}
+            onClick={() => router.push('/dashboard/admin/empleados/alta')}
           >
             + Agregar empleado
           </button>
