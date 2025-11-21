@@ -1,4 +1,4 @@
-import { r2 } from '@/lib/claudflare/r2';
+import { r2 } from '@/lib/cloudflare/r2';
 import { GetObjectCommand } from '@aws-sdk/client-s3';
 import { NextRequest } from 'next/server';
 

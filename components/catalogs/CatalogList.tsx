@@ -1,5 +1,5 @@
 'use client';
-import { CatalogListProps } from '@/interfaces/catalogs-interfaces';
+import { CatalogListProps } from '@/interfaces/resource-interfaces';
 
 export default function CatalogList({
   catalogs,

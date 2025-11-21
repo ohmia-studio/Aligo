@@ -1,6 +1,6 @@
 export const runtime = 'nodejs';
 
-import { r2 } from '@/lib/claudflare/r2';
+import { r2 } from '@/lib/cloudflare/r2';
 import { GetObjectCommand, ListObjectsV2Command } from '@aws-sdk/client-s3';
 import { NextResponse } from 'next/server';
 
@@ -76,11 +76,11 @@ export async function GET(req: Request) {
       const key = c.Key ?? '';
       const fileName = key.split('/').pop() ?? key;
       return {
-        key,
-        file_name: fileName,
-        size: c.Size ?? 0,
-        lastModified: c.LastModified ?? null,
+        name: fileName,
+        fullKey: key,
         url: `${base}/${encodeURIComponent(key)}`,
+        size: c.Size?.toString() ?? '', // TODO: hotfix para poder juntar con catalogo...
+        lastModified: c.LastModified ?? new Date(),
       };
     });
 

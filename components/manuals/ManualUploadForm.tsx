@@ -1,8 +1,10 @@
 'use client';
 
 import { uploadManualAction } from '@/features/manuals/actions/uploadManual';
+import { UploadIcon } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { Spinner } from '../ui/spinner';
 
 type Props = {
   onUploadSuccess?: () => void;
@@ -59,16 +61,16 @@ export default function ManualUploadForm({ onUploadSuccess }: Props) {
   };
 
   return (
-    <div className="rounded-lg bg-white p-6 shadow-md">
-      <h2 className="mb-4 text-xl font-semibold text-gray-900">
+    <div className="bg-container-foreground shadow-shadow-color rounded-lg p-6 shadow-md">
+      <h2 className="text-foreground mb-4 text-xl font-semibold">
         Subir Manual PDF
       </h2>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <section>
           <label
             htmlFor="manual-title"
-            className="mb-2 block text-sm font-medium text-gray-700"
+            className="text-foreground/80 mb-2 block text-sm font-medium"
           >
             Título
           </label>
@@ -79,74 +81,55 @@ export default function ManualUploadForm({ onUploadSuccess }: Props) {
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Título del manual"
             disabled={isUploading}
-            className="block w-full rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-indigo-500 focus:ring-indigo-500"
+            className="text-foreground border-base-color placeholder-base-color focus:border-accent focus:ring-accent block w-full rounded-md border px-3 py-2 text-sm placeholder:opacity-35"
             required
           />
-        </div>
+        </section>
 
-        <div>
+        <section>
           <label
             htmlFor="manual-file"
-            className="mb-2 block text-sm font-medium text-gray-700"
+            className="text-foreground/80 mb-2 block text-sm font-medium"
           >
             Seleccionar archivo PDF
           </label>
-          <input
-            id="manual-file"
-            type="file"
-            accept="application/pdf"
-            onChange={handleFileChange}
-            disabled={isUploading}
-            className="block w-full text-sm text-gray-500 file:mr-4 file:rounded-full file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-blue-700 hover:file:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-50"
-            required
-          />
-          {selectedFile && (
-            <p className="mt-2 text-sm text-gray-600">
-              Archivo seleccionado:{' '}
-              <span className="font-medium">{selectedFile.name}</span>
-              <span className="ml-2 text-gray-500">
-                ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
-              </span>
-            </p>
-          )}
-        </div>
+          <div className="border-base-color/70 flex h-auto w-full place-content-center items-center rounded-md border-2 border-dashed bg-white/10 hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-50">
+            {selectedFile ? (
+              <p className="text-base-color/80 absolute h-auto max-w-[16rem] truncate p-2 text-sm font-medium">
+                {selectedFile.name}
+              </p>
+            ) : (
+              <UploadIcon className="absolute opacity-70" />
+            )}
+            <input
+              id="manual-file"
+              type="file"
+              accept="application/pdf"
+              onChange={handleFileChange}
+              disabled={isUploading}
+              className="min-h-12 w-full opacity-0 hover:cursor-pointer disabled:cursor-not-allowed"
+              required
+            />
+          </div>
+        </section>
 
         <button
           type="submit"
           disabled={isUploading || !selectedFile}
-          className="flex w-full justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+          className="bg-primary text-base-color-foreground flex w-full justify-center rounded-md border border-transparent px-4 py-2 text-sm font-medium shadow-sm hover:cursor-pointer hover:opacity-80 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isUploading ? (
-            <>
-              <svg
-                className="mr-3 -ml-1 h-5 w-5 animate-spin text-white"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                ></circle>
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                ></path>
-              </svg>
-              Subiendo...
-            </>
+            <div className="text-base-color-foreground flex flex-row gap-2">
+              <Spinner className="h-auto" />
+              <p>Subiendo...</p>
+            </div>
           ) : (
             'Subir Manual'
           )}
         </button>
       </form>
 
-      <div className="mt-4 text-xs text-gray-500">
+      <div className="text-base-color/60 mt-4 text-xs">
         <p>• Solo archivos PDF</p>
         <p>• El archivo se guardará de forma segura</p>
       </div>

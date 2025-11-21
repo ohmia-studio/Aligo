@@ -36,3 +36,17 @@ export function usePermissions() {
       user ? roles.includes(user.rol) : false,
   };
 }
+
+export function getHomeRoute(): string {
+  const user = useSelector((state: RootState) => state.auth.user);
+
+  if (!user) return '/dashboard';
+  switch (user.rol) {
+    case 'admin':
+      return '/dashboard/admin';
+    case 'empleado':
+      return '/dashboard/empleados';
+    default:
+      return '/dashboard';
+  }
+}

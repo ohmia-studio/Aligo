@@ -57,7 +57,7 @@ export default function CatalogUploadForm({
 
       const result = await uploadCatalogAction(formData);
 
-      if (result.success) {
+      if (result.status === 200) {
         toast.success(result.message);
         // Limpiar formulario
         setSelectedFile(null);
@@ -65,7 +65,7 @@ export default function CatalogUploadForm({
         // Notificar al componente padre que la subida fue exitosa
         onUploadSuccess?.();
       } else {
-        toast.error(result.error);
+        toast.error(result.message);
       }
     } catch (error) {
       toast.error('Error inesperado al subir el archivo');
@@ -76,8 +76,8 @@ export default function CatalogUploadForm({
   };
 
   return (
-    <div className="rounded-lg bg-white p-6 shadow-md">
-      <h2 className="mb-4 text-xl font-semibold text-gray-900">
+    <div className="bg-container-foreground rounded-lg p-6 shadow-md">
+      <h2 className="text-base-color mb-4 text-xl font-semibold">
         Subir Catálogo PDF
       </h2>
 

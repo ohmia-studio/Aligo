@@ -1,11 +1,13 @@
 'use client';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import { deleteContactsAction } from '@/features/contactos/deleteContacts';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { Contact } from '@/interfaces/contact-interfaces';
 import { Pencil } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import ContactTable from '../common/contactTable';
 
 export function ContactList({ contactos }: { contactos: Contact[] }) {
   const [selected, setSelected] = useState<Set<string | number>>(new Set());
@@ -76,8 +78,12 @@ export function ContactList({ contactos }: { contactos: Contact[] }) {
     }
   };
 
-  return (
-    <div className="mx-auto w-full max-w-4xl px-2 py-4 sm:px-4">
+  const isMobile = useIsMobile();
+
+  return isMobile ? (
+    <ContactTable />
+  ) : (
+    <section className="w-full md:max-w-4xl">
       <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
           <button
@@ -226,6 +232,6 @@ export function ContactList({ contactos }: { contactos: Contact[] }) {
         onConfirm={performDelete}
         loading={loadingBulk}
       />
-    </div>
+    </section>
   );
 }

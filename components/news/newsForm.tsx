@@ -21,6 +21,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { TagDropdown } from '../common/tagDropdown';
+import { Button } from '../ui/button';
 
 export default function NewsForm({
   tags: initialTags,
@@ -230,10 +231,10 @@ export default function NewsForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex h-[90svh] flex-col rounded-lg border p-4 shadow"
+      className="flex h-full flex-col rounded-lg border shadow md:p-4"
     >
-      <section className="h-[82svh]">
-        <div className="flex w-full flex-col gap-8 lg:flex-row">
+      <section className="text-base-color h-full">
+        <div className="flex w-full flex-col gap-8 p-4 md:p-0 lg:flex-row">
           <div className="w-full">
             <label className="text-sm font-medium">Título</label>
             <input
@@ -246,7 +247,7 @@ export default function NewsForm({
                   titulo: e.target.value,
                 }))
               }
-              className="w-full rounded border p-2"
+              className="border-base-color w-full rounded border p-2"
               required
             />
           </div>
@@ -287,18 +288,18 @@ export default function NewsForm({
           }}
         />
       </section>
-
-      <button
+      <Button
         type="submit"
+        variant={'secondary'}
         disabled={loading}
-        className="h-[5svh] w-40 rounded bg-orange-800 px-4 py-2 text-white hover:cursor-pointer hover:bg-orange-600 disabled:bg-gray-400"
+        className="h-auto w-full rounded px-4 py-2 hover:cursor-pointer disabled:bg-gray-400 md:ml-2 md:w-40"
       >
         {loading
           ? 'Enviando...'
           : loadedNew?.id !== NUEVA_NOVEDAD
             ? 'Editar novedad'
             : 'Crear novedad'}
-      </button>
+      </Button>
     </form>
   );
 }

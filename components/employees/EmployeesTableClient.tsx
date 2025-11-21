@@ -1,18 +1,10 @@
 'use client';
 import { deleteEmployeeAction } from '@/features/employees/actions/deleteEmployee';
+import { Employee } from '@/interfaces/Employee-interfaces';
 import { Pencil, Trash } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
-
-interface Employee {
-  id: string | number;
-  dni?: string;
-  nombre?: string;
-  apellido?: string;
-  email?: string;
-  rol?: string;
-}
 
 export function EmployeesTableClient({ empleados }: { empleados: Employee[] }) {
   const [loadingId, setLoadingId] = useState<string | number | null>(null);

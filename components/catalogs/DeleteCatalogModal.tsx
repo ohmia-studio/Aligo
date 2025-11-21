@@ -1,5 +1,5 @@
 'use client';
-import { DeleteCatalogModalProps } from '@/interfaces/catalogs-interfaces';
+import { DeleteCatalogModalProps } from '@/interfaces/resource-interfaces';
 import {
   Dialog,
   DialogContent,

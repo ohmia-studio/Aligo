@@ -1,27 +1,30 @@
 'use server';
-import { r2 } from '@/lib/claudflare/r2';
+import { Result } from '@/interfaces/server-response-interfaces';
+import { r2 } from '@/lib/cloudflare/r2';
 import {
   DeleteObjectCommand,
   ListObjectsV2Command,
   PutObjectCommand,
 } from '@aws-sdk/client-s3';
 
-export async function uploadCatalogAction(formData: FormData) {
+export async function uploadCatalogAction(formData: FormData): Promise<Result> {
   try {
     const file = formData.get('file') as File;
 
     if (!file) {
       return {
-        success: false,
-        error: 'No se recibió archivo',
+        status: 404,
+        message: 'No se recibió archivo',
+        data: null
       };
     }
 
     // Validar que sea un PDF
     if (file.type !== 'application/pdf') {
       return {
-        success: false,
-        error: 'Solo se permiten archivos PDF',
+        status: 400,
+        message: 'Solo se permiten archivos PDF',
+        data: null
       };
     }
 
@@ -46,16 +49,20 @@ export async function uploadCatalogAction(formData: FormData) {
     const fileUrl = `https://${process.env.R2_BUCKET_NAME}.${process.env.R2_ACCOUNT_ID}.r2.dev/${fileName}`;
 
     return {
-      success: true,
+      status: 200,
       message: `Catálogo subido: ${file.name}`,
-      url: fileUrl,
-      fileName: fileName,
+      data: {
+        url: fileUrl,
+        fileName: fileName
+      }
     };
+
   } catch (err) {
     console.error('Error al subir catálogo:', err);
     return {
-      success: false,
-      error: 'Error interno al subir el archivo',
+      status: 500,
+      message: 'Error interno al subir el archivo',
+      data: null
     };
   }
 }
@@ -115,13 +122,14 @@ export async function listCatalogs() {
   }
 }
 
-export async function deleteCatalog(catalogKey: string) {
+export async function deleteCatalog(catalogKey: string): Promise<Result> {
   try {
     // Validar que la key pertenece a la carpeta catalogs
     if (!catalogKey.startsWith('catalogs/')) {
       return {
-        success: false,
-        error: 'Archivo no válido para eliminar',
+        status: 400,
+        message: 'Archivo no válido para eliminar',
+        data: null
       };
     }
 
@@ -133,14 +141,16 @@ export async function deleteCatalog(catalogKey: string) {
     await r2.send(command);
 
     return {
-      success: true,
+      status: 200,
       message: 'Catálogo eliminado correctamente',
+      data: null
     };
   } catch (err) {
     console.error('Error al eliminar catálogo:', err);
     return {
-      success: false,
-      error: 'Error al eliminar el catálogo',
+      status: 200,
+      message: 'Error al eliminar catálogo',
+      data: err
     };
   }
 }

@@ -22,16 +22,20 @@ export function Dialog({
   onConfirm,
 }: AlertDialogEvent) {
   return (
-    <AlertDialogContent>
+    <AlertDialogContent className="bg-container">
       <AlertDialogHeader>
-        <AlertDialogTitle>{title}</AlertDialogTitle>
+        <AlertDialogTitle className="text-base-color">{title}</AlertDialogTitle>
         <AlertDialogDescription>{description}</AlertDialogDescription>
       </AlertDialogHeader>
       <AlertDialogFooter>
-        <AlertDialogCancel className="hover:cursor-pointer">
+        <AlertDialogCancel className="text-base-color/70 font-normal hover:cursor-pointer">
           Cancelar
         </AlertDialogCancel>
-        <AlertDialogAction className="hover:cursor-pointer" onClick={onConfirm}>
+        <AlertDialogAction
+          className="hover:cursor-pointer"
+          onClick={onConfirm}
+          itemType="destructive"
+        >
           {actionVerb}
         </AlertDialogAction>
       </AlertDialogFooter>

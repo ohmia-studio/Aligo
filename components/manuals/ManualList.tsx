@@ -1,9 +1,15 @@
 'use client';
 
 import { deleteManualAction } from '@/features/manuals/actions/deleteManual';
+import { RootState } from '@/store/store';
+import { AlertDialog, AlertDialogTrigger } from '@radix-ui/react-alert-dialog';
+import { DownloadIcon, FileTextIcon, Trash2Icon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useSelector } from 'react-redux';
 import { toast } from 'sonner';
+import { Dialog } from '../common/alertDialog';
+import { useLoader } from '../providers/loaderProvider';
+import { Button } from '../ui/button';
 
 type Manual = {
   key: string;
@@ -26,26 +32,20 @@ export default function ManualList({
   onDownload,
   onRefresh,
 }: ManualListProps) {
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [deletingKey, setDeletingKey] = useState<string | null>(null);
-  const [loadingDelete, setLoadingDelete] = useState(false);
+  const { showLoader, hideLoader } = useLoader();
   const router = useRouter();
+  const user = useSelector((state: RootState) => state.auth.user);
+  const rol = user?.rol || 'usuario';
 
-  const openConfirm = (key: string) => {
-    setDeletingKey(key);
-    setConfirmOpen(true);
+  const sliceTimeStamp = (str: string | undefined, key: string) => {
+    if (!str) return key;
+
+    return str.slice(str.indexOf('_') + 1);
   };
 
-  const closeConfirm = () => {
-    setConfirmOpen(false);
-    setDeletingKey(null);
-  };
-
-  const performDelete = async () => {
-    if (!deletingKey) return;
-    setLoadingDelete(true);
-
+  const performDelete = async (deletingKey: string) => {
     try {
+      showLoader();
       // permitir override por props (page puede manejar delete)
       if (onDelete) {
         await onDelete(deletingKey);
@@ -58,14 +58,13 @@ export default function ManualList({
       }
 
       toast.success('Manual eliminado');
-      closeConfirm();
       if (onRefresh) onRefresh();
       else router.refresh();
     } catch (err) {
       console.error('delete error', err);
       toast.error((err as any)?.message ?? 'Error eliminando manual');
     } finally {
-      setLoadingDelete(false);
+      hideLoader();
     }
   };
 
@@ -79,99 +78,77 @@ export default function ManualList({
   };
 
   return (
-    <div className="rounded-lg bg-white p-6 shadow-md">
-      <h2 className="mb-4 text-xl font-semibold text-gray-900">
+    <div className="bg-container-foreground shadow-shadow-color rounded-lg p-6 shadow-md">
+      <h2 className="text-foreground mb-4 text-xl font-semibold">
         Manuales Subidos ({manuals.length})
       </h2>
 
       {manuals.length === 0 ? (
-        <div className="py-8 text-center text-gray-500">
-          <svg
-            className="mx-auto h-12 w-12 text-gray-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-            />
-          </svg>
+        <div className="text-foreground/80 items-center justify-items-center py-8 text-center">
+          <FileTextIcon size={32} className="opacity-60" />
           <p className="mt-2">No hay manuales subidos</p>
           <p className="text-sm">Sube tu primer manual usando el formulario</p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="flex flex-col gap-6">
           {manuals.map((m) => (
             <div
               key={m.key}
-              className="flex items-center justify-between rounded-lg border border-gray-200 p-3 hover:bg-gray-50"
+              className="border-container shadow-shadow-color flex items-center justify-between rounded-lg border p-3 shadow-xl transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-xl/20"
             >
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-gray-900">
-                  {m.file_name ?? m.key}
-                </p>
-                <p className="text-xs text-gray-500">
-                  {m.size ? `${(m.size / 1024).toFixed(1)} KB` : '—'} •{' '}
-                  {m.lastModified
-                    ? new Date(m.lastModified).toLocaleDateString()
-                    : '—'}
-                </p>
-                {/* Botón Ver manual debajo del nombre */}
-                <div className="mt-3">
-                  <a
-                    href={`/dashboard/manuales/ver?key=${encodeURIComponent(m.key)}&name=${encodeURIComponent(m.file_name || m.key)}`}
-                    className="block w-full cursor-pointer rounded bg-green-600 px-4 py-2 text-center text-sm font-semibold text-white shadow transition hover:bg-green-700"
-                  >
-                    Ver manual
-                  </a>
-                </div>
-              </div>
+              <div className="flex min-w-0 flex-1 flex-col gap-4">
+                <section>
+                  <p className="text-foreground truncate text-sm font-medium">
+                    {sliceTimeStamp(m.file_name, m.key)}
+                  </p>
+                  <p className="text-foreground/60 text-xs">
+                    {m.size ? `${(m.size / 1024).toFixed(1)} KB` : '—'} •{' '}
+                    {m.lastModified
+                      ? new Date(m.lastModified).toLocaleDateString()
+                      : '—'}
+                  </p>
+                </section>
+                <section className="flex justify-between">
+                  <div className="flex w-4/5 items-center gap-4">
+                    <button
+                      type="button"
+                      className="bg-primary text-base-color-foreground w-[60%] cursor-pointer rounded px-4 py-2 text-center text-sm font-semibold shadow-md transition hover:bg-blue-700 hover:shadow-md/20"
+                    >
+                      <a
+                        href={`/dashboard/manuales/ver?key=${encodeURIComponent(m.key)}&name=${encodeURIComponent(m.file_name || m.key)}`}
+                      >
+                        Ver manual
+                      </a>
+                    </button>
+                    <button
+                      onClick={() => handleView(m)}
+                      className="text-accent cursor-pointer text-sm font-medium hover:text-blue-800"
+                      title="Descargar"
+                    >
+                      <DownloadIcon />
+                    </button>
+                  </div>
 
-              <div className="ml-4 flex items-center space-x-2">
-                {/* Botón Descargar */}
-                <button
-                  onClick={() => handleView(m)}
-                  className="cursor-pointer text-sm font-medium text-blue-600 hover:text-blue-800"
-                  title="Descargar"
-                >
-                  <svg
-                    className="h-5 w-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                    />
-                  </svg>
-                </button>
-
-                <button
-                  onClick={() => openConfirm(m.key)}
-                  className="cursor-pointer text-sm font-medium text-red-600 hover:text-red-800"
-                  title="Eliminar"
-                  disabled={loadingDelete}
-                >
-                  <svg
-                    className="h-5 w-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                    />
-                  </svg>
-                </button>
+                  {rol === 'admin' && (
+                    <AlertDialog>
+                      <Dialog
+                        title={`Eliminar "${m.file_name}"`}
+                        description="No se podrá revertir la acción."
+                        actionVerb="Borrar"
+                        onConfirm={() => performDelete(m.key)}
+                      />
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          className="hover:shadow-destructive hover:cursor-pointer"
+                          variant="outline"
+                          type="button"
+                        >
+                          <Trash2Icon className="text-destructive" />
+                        </Button>
+                      </AlertDialogTrigger>
+                    </AlertDialog>
+                  )}
+                </section>
               </div>
             </div>
           ))}
@@ -180,60 +157,10 @@ export default function ManualList({
 
       <button
         onClick={onRefresh}
-        className="mt-4 text-sm font-medium text-blue-600 hover:text-blue-800"
+        className="text-primary/90 hover:text-primary mt-4 text-sm font-medium hover:cursor-pointer"
       >
         ↻ Actualizar lista
       </button>
-
-      {/* Confirm modal (solo eliminación individual) */}
-      {confirmOpen && deletingKey && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center"
-          role="dialog"
-          aria-modal="true"
-        >
-          <div
-            className="absolute inset-0 bg-black/40"
-            onClick={closeConfirm}
-          />
-          <div className="relative z-10 w-full max-w-lg rounded bg-white p-6 shadow-lg">
-            <h3 className="mb-2 text-lg font-semibold text-gray-900">
-              ¿Confirmás eliminar este manual?
-            </h3>
-            <p className="mb-4 text-sm text-gray-700">
-              Se eliminará permanentemente el manual seleccionado. Esta acción
-              no se puede deshacer.
-            </p>
-
-            <div className="mb-4 rounded border bg-gray-50 p-3">
-              <p className="text-sm text-gray-800">
-                <strong>
-                  {manuals.find((x) => x.key === deletingKey)?.file_name ??
-                    deletingKey}
-                </strong>
-              </p>
-            </div>
-
-            <div className="flex justify-end gap-2">
-              <button
-                className="rounded border px-4 py-2 text-sm"
-                onClick={closeConfirm}
-                type="button"
-              >
-                Cancelar
-              </button>
-              <button
-                className="rounded bg-red-600 px-4 py-2 text-sm font-semibold text-white"
-                onClick={performDelete}
-                type="button"
-                disabled={loadingDelete}
-              >
-                {loadingDelete ? 'Eliminando...' : 'Eliminar'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

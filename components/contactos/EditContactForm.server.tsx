@@ -26,48 +26,42 @@ export default function EditContactForm({ contact }: { contact: any }) {
   return (
     <form
       action={updateContactServerAction}
-      className="flex flex-col gap-2 rounded-lg border bg-white p-6 shadow-lg"
+      className="bg-container flex flex-col gap-2 rounded-lg border p-6 shadow-lg"
       style={{ maxWidth: '900px' }}
     >
       <input type="hidden" name="id" value={contact.id} />
-      <div className="flex flex-col gap-2 sm:flex-row">
+      <div className="text-base-color/80 flex flex-col gap-2 sm:flex-row">
         <div className="flex-1">
-          <label className="mb-1 block text-sm font-medium text-gray-700">
-            Nombre *
-          </label>
+          <label className="mb-1 block text-sm font-medium">Nombre *</label>
           <input
             name="nombre"
             required
             defaultValue={contact.nombre ?? ''}
-            className="w-full rounded border px-3 py-2 text-black"
+            className="focus:text-base-color border-base-color/20 w-full rounded border px-3 py-2"
           />
         </div>
         <div className="w-40">
-          <label className="mb-1 block text-sm font-medium text-gray-700">
-            Teléfono
-          </label>
+          <label className="mb-1 block text-sm font-medium">Teléfono</label>
           <input
             name="telefono"
             defaultValue={contact.telefono ?? ''}
-            className="w-full rounded border px-3 py-2 text-black"
+            className="focus:text-base-color border-base-color/20 w-full rounded border px-3 py-2"
           />
         </div>
         <div className="w-64">
-          <label className="mb-1 block text-sm font-medium text-gray-700">
-            Email
-          </label>
+          <label className="mb-1 block text-sm font-medium">Email</label>
           <input
             name="email"
             type="email"
             defaultValue={contact.email ?? ''}
-            className="w-full rounded border px-3 py-2 text-black"
+            className="focus:text-base-color border-base-color/20 w-full rounded border px-3 py-2"
           />
         </div>
       </div>
       <div className="mt-2 flex justify-end">
         <button
           type="submit"
-          className="cursor-pointer rounded bg-blue-600 px-4 py-2 text-white"
+          className="bg-primary text-base-color-foreground cursor-pointer rounded px-4 py-2"
         >
           Guardar cambios
         </button>

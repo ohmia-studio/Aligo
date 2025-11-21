@@ -22,3 +22,11 @@ export interface Item {
   title?: string;
   subtitle?: string;
 }
+
+export type TableProps = {
+  contactos: Contact[];
+  selected: Set<number | string>;
+  toggle: (id: number | string) => void;
+  allSelected: boolean;
+  toggleSelectAll: () => void;
+}

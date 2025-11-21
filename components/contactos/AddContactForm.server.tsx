@@ -43,44 +43,38 @@ export default function AddContactForm() {
     <div className="mb-6 w-full max-w-4xl">
       <form
         action={insertContactServerAction}
-        className="flex flex-col gap-2 rounded-lg border bg-white p-6 shadow-lg"
+        className="bg-container text-base-color/80 flex flex-col gap-2 rounded-lg border p-6 shadow-lg"
         style={{ maxWidth: '900px' }}
       >
         <div className="flex flex-col gap-2 sm:flex-row">
           <div className="flex-1">
-            <label className="mb-1 block text-sm font-medium text-gray-700">
-              Nombre *
-            </label>
+            <label className="mb-1 block text-sm font-medium">Nombre *</label>
             <input
               name="nombre"
               required
-              className="w-full rounded border px-3 py-2 text-black"
+              className="border-base-color/20 focus:text-base-color w-full rounded border px-3 py-2"
             />
           </div>
           <div className="w-40">
-            <label className="mb-1 block text-sm font-medium text-gray-700">
-              Teléfono
-            </label>
+            <label className="mb-1 block text-sm font-medium">Teléfono</label>
             <input
               name="telefono"
-              className="w-full rounded border px-3 py-2 text-black"
+              className="border-base-color/20 focus:text-base-color w-full rounded border px-3 py-2"
             />
           </div>
           <div className="w-64">
-            <label className="mb-1 block text-sm font-medium text-gray-700">
-              Email
-            </label>
+            <label className="mb-1 block text-sm font-medium">Email</label>
             <input
               name="email"
               type="email"
-              className="w-full rounded border px-3 py-2 text-black"
+              className="border-base-color/20 focus:text-base-color w-full rounded border px-3 py-2"
             />
           </div>
         </div>
         <div className="mt-2 flex justify-end">
           <button
             type="submit"
-            className="rounded bg-green-600 px-4 py-2 text-white"
+            className="bg-primary text-base-color-foreground rounded px-4 py-2 transition duration-150 hover:scale-105 hover:cursor-pointer hover:brightness-105"
           >
             Crear contacto
           </button>

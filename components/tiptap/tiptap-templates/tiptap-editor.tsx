@@ -63,8 +63,8 @@ const MainToolbarContent = React.memo(
     onLinkClick: () => void;
     isMobile: boolean;
   }) => (
-    <>
-      <Spacer />
+    <div className="flex flex-wrap justify-center gap-2">
+      {!isMobile && <Spacer />}
       <ToolbarGroup>
         <UndoRedoButton action="undo" />
         <UndoRedoButton action="redo" />
@@ -102,9 +102,9 @@ const MainToolbarContent = React.memo(
       <ToolbarGroup>
         <ImageUploadButton text="Add" />
       </ToolbarGroup>
-      <Spacer />
+      {!isMobile && <Spacer />}
       {isMobile && <ToolbarSeparator />}
-    </>
+    </div>
   )
 );
 
@@ -224,15 +224,20 @@ export function TextEditor({
   }, [isMobile, mobileView]);
 
   return (
-    <div className="h-5/6 w-auto overflow-auto">
+    <div className="h-[60%] w-auto overflow-auto">
       <EditorContext.Provider value={{ editor }}>
         <Toolbar
           ref={toolbarRef}
           style={
             isMobile
-              ? { bottom: `calc(100% - ${height - rect.y}px)` }
+              ? {
+                  position: 'relative',
+                  display: 'flex',
+                  flexFlow: 'column',
+                }
               : undefined
           }
+          className="justify-center"
         >
           {mobileView === 'main' ? (
             <MainToolbarContent
