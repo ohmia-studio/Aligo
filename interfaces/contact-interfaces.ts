@@ -1,3 +1,14 @@
+export interface ContactForm {
+  nombre: string;
+  telefono: string;
+  email: string;
+}
+export interface ContactError {
+  nombre?: string | null;
+  telefono?: string | null;
+  email?: string | null;
+  general?: string | null;
+}
 export interface Contact {
   id: string | number;
   nombre?: string;
@@ -29,4 +40,11 @@ export type TableProps = {
   toggle: (id: number | string) => void;
   allSelected: boolean;
   toggleSelectAll: () => void;
+  onEdit?: (contact: Contact) => void;
+};
+
+export interface ContactValidationResult {
+  isValid: boolean;
+  errors?: string;
+  validatedData?: any;
 }

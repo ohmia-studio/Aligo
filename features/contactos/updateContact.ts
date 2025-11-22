@@ -2,10 +2,11 @@
 
 import { Result } from '@/interfaces/server-response-interfaces';
 import { requireServerAuth } from '@/lib/auth/requireServerAuth';
-import { insertContact } from './contactRepository';
+import { updateContact } from './contactRepository';
 import { validateContactPayload } from './contactValidation';
 
-export async function insertContactAction(payload: {
+export async function updateContactAction(payload: {
+  id: number;
   nombre: string;
   telefono?: string;
   email?: string;
@@ -16,20 +17,27 @@ export async function insertContactAction(payload: {
   }
 
   // Validaciones usando helper centralizado
-  const validation = validateContactPayload(payload);
+  const validation = validateContactPayload({
+    nombre: payload.nombre,
+    telefono: payload.telefono,
+    email: payload.email,
+  });
   if (!validation.isValid) {
     return { status: 400, message: validation.errors!, data: null };
   }
 
   try {
-    const { data, error, status, message } = await insertContact(
-      validation.validatedData!
-    );
+    const finalPayload = {
+      id: payload.id,
+      ...validation.validatedData!,
+    };
+
+    const { data, error, status, message } = await updateContact(finalPayload);
     if (error)
       return { status: status || 500, message: message ?? 'Error', data: null };
-    return { status: 200, message: 'Contacto creado con éxito', data };
+    return { status: 200, message: 'Contacto actualizado con éxito', data };
   } catch (err) {
-    console.error('Error insertContactAction', err);
+    console.error('Error updateContactAction', err);
     return { status: 500, message: 'Error inesperado', data: null };
   }
 }

@@ -2,7 +2,6 @@
 
 import { TableProps } from '@/interfaces/contact-interfaces';
 import { Pencil } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 
 export default function ContactTableDesktop({
   contactos,
@@ -10,9 +9,8 @@ export default function ContactTableDesktop({
   toggle,
   allSelected,
   toggleSelectAll,
+  onEdit,
 }: TableProps) {
-  const router = useRouter();
-
   return (
     <div className="border-container-foreground bg-container max-w-fit overflow-x-auto rounded-lg shadow-md">
       <table className="text-base-color max-w-full text-sm">
@@ -68,10 +66,8 @@ export default function ContactTableDesktop({
                 <td className="px-4 py-3 whitespace-nowrap">{c.telefono}</td>
                 <td className="px-4 py-3 text-center">
                   <button
-                    className="hover:bg-primary text-base-color-foreground bg-primary/90 hover:border-accent-foreground border-primary/90 rounded-full border-2 p-2 shadow-md transition duration-150 hover:border-2"
-                    onClick={() =>
-                      router.push(`/dashboard/admin/contactos/${c.id}/editar`)
-                    }
+                    className="hover:bg-primary text-base-color-foreground bg-primary/90 hover:border-accent-foreground border-primary/90 cursor-pointer rounded-full border-2 p-2 shadow-md transition duration-150 hover:border-2"
+                    onClick={() => onEdit && onEdit(c)}
                     aria-label={`Editar contacto ${c.nombre || ''}`}
                   >
                     <Pencil size={18} />

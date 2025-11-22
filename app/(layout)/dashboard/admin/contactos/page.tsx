@@ -34,8 +34,10 @@ async function Contacts() {
 export default async function ContactosPage() {
   const resultContacts = await listContactsAction();
   return (
-    <Suspense fallback={<ContactListSkeleton />}>
-      <Contacts contacts={resultContacts} />
-    </Suspense>
+    <>
+      <Suspense fallback={<ContactListSkeleton />}>
+        <Contacts contacts={resultContacts} />
+      </Suspense>
+    </>
   );
 }

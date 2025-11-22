@@ -1,19 +1,22 @@
 'use client';
 
+import AddContactForm from '@/components/contactos/AddContactForm';
 import ContactCardMobile from '@/components/contactos/contactCardMobile';
 import ContactTableDesktop from '@/components/contactos/contactTableDesktop';
 import { deleteContactsAction } from '@/features/contactos/deleteContacts';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Contact } from '@/interfaces/contact-interfaces';
 import { Result } from '@/interfaces/server-response-interfaces';
+import { AnimatePresence, motion } from 'motion/react';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { Dialog } from '../common/alertDialog';
+import BubbleInfo from '../news/bubbleInfo';
 import ServerErrorPage from '../page/serverErrorPage';
 import { AlertDialog, AlertDialogTrigger } from '../ui/alert-dialog';
+import { Button } from '../ui/button';
 import { Spinner } from '../ui/spinner';
-import AddContactToggle from './AddContactToggle';
 
 export default function Contacts({ contacts }: { contacts: Result }) {
   const isMobile = useIsMobile();
@@ -21,6 +24,15 @@ export default function Contacts({ contacts }: { contacts: Result }) {
 
   const [selected, setSelected] = useState<Set<number | string>>(new Set());
   const [loadingDelete, setLoadingDelete] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [contactEdit, setContactEdit] = useState<Contact | undefined>(
+    undefined
+  );
+
+  useEffect(() => {
+    if (!isFormOpen && contactEdit !== undefined) setIsFormOpen(true);
+    else if (isFormOpen && contactEdit === undefined) setIsFormOpen(false);
+  }, [contactEdit]);
 
   const toggle = (id: number | string) => {
     setSelected((prev) => {
@@ -74,11 +86,36 @@ export default function Contacts({ contacts }: { contacts: Result }) {
         </h1>
 
         <div className="flex gap-4">
-          <AddContactToggle />
+          <Button
+            onClick={() => setIsFormOpen(!isFormOpen)}
+            variant="outline"
+            type="button"
+            className="hover:border-primary border-accent relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border transition-colors hover:cursor-pointer"
+          >
+            <motion.span
+              key={isFormOpen ? 'minus' : 'plus'}
+              initial={{ rotate: isFormOpen ? 90 : -90, opacity: 0 }}
+              animate={{ rotate: 0, opacity: 1 }}
+              exit={{ rotate: isFormOpen ? -90 : 90, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="text-accent absolute text-2xl leading-none font-bold"
+            >
+              {isFormOpen ? '−' : '+'}
+            </motion.span>
+          </Button>
+
+          {contactEdit && (
+            <BubbleInfo
+              content={`Editando: ${contactEdit.nombre}`}
+              onClose={() => {
+                setContactEdit(undefined);
+              }}
+            />
+          )}
 
           <AlertDialog>
             <Dialog
-              title={`Eliminar ${selected.size > 1 ? `${selected.size} contactos` : `${selected.keys()}`}`}
+              title={`Eliminar ${selected.size > 1 ? `${selected.size} contactos` : `contacto seleccionado`}`}
               description={`Esta acción no se puede deshacer.`}
               actionVerb="Borrar"
               onConfirm={performDelete}
@@ -103,6 +140,34 @@ export default function Contacts({ contacts }: { contacts: Result }) {
         </div>
       </header>
 
+      {/* Formulario animado */}
+      <AnimatePresence initial={false}>
+        {isFormOpen && (
+          <motion.div
+            key="contact-form"
+            initial={{ opacity: 0, height: 'var(--scale-from,0)' }}
+            animate={{ opacity: 1, height: 'var(--scale-to,1)' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.4, ease: 'easeInOut' }}
+            className="overflow-hidden [--scale-from:0] [--scale-to:auto]"
+          >
+            <AddContactForm
+              contact={contactEdit}
+              onSuccess={() => {
+                setIsFormOpen(false);
+                setContactEdit(undefined);
+                router.refresh();
+                toast.success(
+                  contactEdit
+                    ? 'Contacto actualizado con éxito'
+                    : 'Contacto creado con éxito'
+                );
+              }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {!contacts.data.length ? (
         <p className="text-base-color/80">
           🤔 No hay contactos agendados aún...
@@ -115,11 +180,7 @@ export default function Contacts({ contacts }: { contacts: Result }) {
               contact={c}
               selected={selected.has(c.id)}
               onToggle={() => toggle(c.id)}
-              onEdit={() =>
-                window.location.assign(
-                  `/dashboard/admin/contactos/${c.id}/editar`
-                )
-              }
+              onEdit={() => setContactEdit(c)}
             />
           ))}
         </div>
@@ -130,6 +191,7 @@ export default function Contacts({ contacts }: { contacts: Result }) {
           toggle={toggle}
           allSelected={allSelected}
           toggleSelectAll={toggleSelectAll}
+          onEdit={(contact) => setContactEdit(contact)}
         />
       )}
     </div>
