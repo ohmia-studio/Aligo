@@ -1,17 +1,17 @@
 'use client';
 
-import { usePermissions } from '@/components/auth/PermissionGuard';
 import CatalogListSkeleton from '@/components/catalogs/CatalogListSkeleton';
 import DeleteCatalogModal from '@/components/catalogs/DeleteCatalogModal';
 import { AdminManagerPageTemplate } from '@/components/page/adminManagerPageTemplate';
 import ResourcesList from '@/components/page/resourcesList';
 import ResourcesUploadForm from '@/components/page/resourcesUploadForm';
+import { triggerDownload } from '@/features/storage/client';
 import {
-  deleteCatalog,
-  listCatalogs,
-  uploadCatalogAction,
-} from '@/features/catalogs/catalogs';
-import { Catalog, Resource } from '@/interfaces/resource-interfaces';
+  deleteAction,
+  listAction,
+  uploadAction,
+} from '@/features/storage/storage';
+import { Resource } from '@/interfaces/resource-interfaces';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -19,43 +19,32 @@ export default function CatalogosPage() {
   const [catalogs, setCatalogs] = useState<Resource[]>([]);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
-  // Hook para verificar permisos basado en rol
-  const { isAdmin } = usePermissions();
   const [catalogToDelete, setCatalogToDelete] = useState<Resource | null>(null);
 
   const fetchCatalogs = async () => {
     try {
-      const result = await listCatalogs();
-      if (result.success) {
-        setCatalogs(result.catalogs);
+      const result = await listAction('catalogs');
+      if (result && result.status === 200) {
+        setCatalogs(result.data?.catalogs || []);
       } else {
-        toast.error(result.error || 'Error al cargar los catálogos');
+        toast.error(result?.message || 'Error al cargar los catálogos');
       }
     } catch (error) {
       toast.error('Error al cargar los catálogos');
     }
   };
 
-  const handleDeleteRequest = (catalogKey: string) => {
-    // Solo permitir eliminación a admins
-    if (!isAdmin) return;
-
-    const catalog = catalogs.find((c) => c.fullKey === catalogKey) || null;
-    setCatalogToDelete(catalog);
-    setDeleteModalOpen(true);
-  };
-
   const handleDeleteConfirm = async () => {
     if (!catalogToDelete) return;
     try {
-      const result = await deleteCatalog(catalogToDelete.fullKey);
-      if (result.status) {
+      const result = await deleteAction('catalogs', catalogToDelete.fullKey);
+      if (result && result.status === 200) {
         toast.success(result.message || 'Catálogo eliminado correctamente');
         setCatalogs(
           catalogs.filter((c) => c.fullKey !== catalogToDelete.fullKey)
         );
       } else {
-        toast.error(result.message || 'Error al eliminar el catálogo');
+        toast.error(result?.message || 'Error al eliminar el catálogo');
       }
     } catch (error) {
       toast.error('Error al eliminar el catálogo');
@@ -72,23 +61,8 @@ export default function CatalogosPage() {
   };
 
   const handleDownload = (catalog: Resource) => {
-    const url = `/api/catalogos?key=${encodeURIComponent(
-      catalog.fullKey
-    )}&name=${encodeURIComponent(catalog.name)}`;
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = catalog.name;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    triggerDownload(catalog.fullKey, catalog.name);
     toast.success(`Descargando: ${catalog.name}`);
-  };
-
-  const handleView = (catalog: Catalog) => {
-    window.open(
-      `/dashboard/catalogos/ver?key=${encodeURIComponent(catalog.fullKey)}&name=${encodeURIComponent(catalog.name)}`,
-      '_blank'
-    );
   };
 
   useEffect(() => {
@@ -107,7 +81,7 @@ export default function CatalogosPage() {
           <ResourcesUploadForm
             type="Catalogo"
             onUploadSuccess={fetchCatalogs}
-            onUploadAction={uploadCatalogAction}
+            onUploadAction={uploadAction}
           />
         }
         ListComponent={
@@ -115,7 +89,7 @@ export default function CatalogosPage() {
           <ResourcesList
             type="Catalogo"
             fetchedData={catalogs}
-            onDeleteAction={deleteCatalog}
+            onDeleteAction={(key) => deleteAction('catalogs', key)}
             onDownload={handleDownload}
             onRefresh={fetchCatalogs}
           />

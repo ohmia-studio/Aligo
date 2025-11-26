@@ -1,13 +1,6 @@
 import BrowserPDFViewer from '@/components/catalogs/BrowserPDFViewer';
+import { GenericPDFViewPageProps } from '@/interfaces/documents-interfaces';
 import Link from 'next/link';
-
-interface GenericPDFViewPageProps {
-  searchParams: Promise<{
-    key?: string;
-    name?: string;
-  }>;
-  type: 'catalogos' | 'manuales';
-}
 
 export default async function GenericPDFViewPage({
   searchParams,
