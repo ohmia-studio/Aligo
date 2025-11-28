@@ -1,14 +1,14 @@
 import { withAuth } from '@/lib/auth/withAuth';
 import { r2 } from '@/lib/cloudflare/r2';
+import { stripTimestamp } from '@/lib/utils';
 import { GetObjectCommand } from '@aws-sdk/client-s3';
 import { NextRequest } from 'next/server';
 
 export const runtime = 'nodejs';
 
 /**
- * API Route para descargar archivos desde Cloudflare R2
- * Soporta claves que empiezan con `catalogs/` o `manuals/`.
- * GET /api/storage?key=catalogs/archivo.pdf&name=NombreArchivo.pdf&view=true
+ * API Route para descargar/visualizar archivos desde Cloudflare R2
+ * Soporta claves que empiezan con `catalogs/` o `manuales/`.
  */
 export const GET = withAuth(
   async (req: NextRequest) => {
@@ -17,6 +17,7 @@ export const GET = withAuth(
       const key = searchParams.get('key');
       const name = searchParams.get('name') || undefined;
       const view = searchParams.get('view');
+      const dispositionParam = searchParams.get('disposition'); // inline | attachment
 
       if (!key || typeof key !== 'string') {
         return new Response(
@@ -28,7 +29,7 @@ export const GET = withAuth(
         );
       }
 
-      // Validar que la key pertenezca a catalogs/ o manuals/
+      // Validar que la key pertenezca a catalogs/ o manuales/
       if (!key.startsWith('catalogs/') && !key.startsWith('manuales/')) {
         console.log('Error: Key inválida:', key);
         return new Response(
@@ -48,13 +49,16 @@ export const GET = withAuth(
         new GetObjectCommand({ Bucket: bucket, Key: key })
       );
 
-      // Nombre para el archivo
-      const fileName = name || key.split('/').pop() || 'archivo.pdf';
+      // Nombre para el archivo (sin timestamp si viene en el key)
+      const rawName = name || key.split('/').pop() || 'archivo.pdf';
+      const fileName = stripTimestamp(rawName);
 
       // Configurar headers
       const headers = new Headers();
 
-      if (view === 'true') {
+      const inline = view === 'true' || dispositionParam === 'inline';
+
+      if (inline) {
         headers.set(
           'Content-Disposition',
           `inline; filename="${encodeURIComponent(fileName)}"`

@@ -1,19 +1,11 @@
 'use server';
 import { Result } from '@/interfaces/server-response-interfaces';
+import { validateEmail } from '@/lib/validations';
 import {
   createAuthUser,
   findPersonaByDniOrEmail,
   insertPersona,
 } from './employeeRepository';
-
-type AltaEmpleadoParams = {
-  dni: string;
-  nombre: string;
-  apellido: string;
-  email: string;
-  telefono?: string;
-};
-
 export async function altaEmpleadoAction(formData: FormData): Promise<Result> {
   const dni = formData.get('dni')?.toString().trim();
   const nombre = formData.get('nombre')?.toString().trim();
@@ -30,9 +22,8 @@ export async function altaEmpleadoAction(formData: FormData): Promise<Result> {
   }
 
   // validaciones mínimas
-  const emailRegex = /^\S+@\S+\.\S+$/;
-  if (!emailRegex.test(email))
-    return { status: 400, message: 'Email inválido', data: null };
+  const errorEmail = validateEmail(email);
+  if (errorEmail) return { status: 400, message: 'Email inválido', data: null };
   if (dni.replace(/\D/g, '').length < 6)
     return { status: 400, message: 'DNI demasiado corto', data: null };
 

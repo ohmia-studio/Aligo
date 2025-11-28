@@ -1,16 +1,7 @@
 'use client';
 
+import { BrowserPDFViewerProps } from '@/interfaces/documents-interfaces';
 import { useState } from 'react';
-
-interface BrowserPDFViewerProps {
-  pdfUrl: string;
-  catalogName: string;
-  downloadUrl?: string;
-  backUrl?: string;
-  backLabel?: string;
-  homeUrl?: string;
-}
-
 export default function BrowserPDFViewer({
   pdfUrl,
   catalogName,

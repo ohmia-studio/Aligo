@@ -11,6 +11,7 @@ import {
   uploadAction,
 } from '@/features/storage/storage';
 import { Resource } from '@/interfaces/resource-interfaces';
+import { stripTimestamp } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -37,8 +38,9 @@ export default function ManualsPage() {
 
   // descarga centralizada (igual que en catalogos)
   const handleDownload = (m: Resource) => {
-    triggerDownload(m.fullKey, m.name || m.fullKey);
-    toast.success(`Descargando: ${m.name || 'manual'}`);
+    const cleanName = stripTimestamp(m.name || m.fullKey);
+    triggerDownload(m.fullKey, cleanName);
+    toast.success(`Descargando: ${cleanName}`);
   };
 
   return (

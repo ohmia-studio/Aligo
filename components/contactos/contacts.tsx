@@ -76,6 +76,20 @@ export default function Contacts({ contacts }: { contacts: Result }) {
     }
   };
 
+  const getDeleteTitle = () => {
+    if (selected.size === 0) return 'Eliminar contactos';
+    if (selected.size === 1) {
+      const id = Array.from(selected)[0];
+      const contact = contacts.data.find(
+        (c: Contact) => String(c.id) === String(id)
+      );
+      return contact
+        ? `Eliminar ${contact.nombre}`
+        : 'Eliminar contacto seleccionado';
+    }
+    return `Eliminar ${selected.size} contactos`;
+  };
+
   return contacts.status !== 200 ? (
     <ServerErrorPage errorCode={contacts.status} />
   ) : (
@@ -115,7 +129,7 @@ export default function Contacts({ contacts }: { contacts: Result }) {
 
           <AlertDialog>
             <Dialog
-              title={`Eliminar ${selected.size > 1 ? `${selected.size} contactos` : `contacto seleccionado`}`}
+              title={getDeleteTitle()}
               description={`Esta acción no se puede deshacer.`}
               actionVerb="Borrar"
               onConfirm={performDelete}

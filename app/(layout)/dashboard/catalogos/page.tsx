@@ -12,6 +12,7 @@ import {
   uploadAction,
 } from '@/features/storage/storage';
 import { Resource } from '@/interfaces/resource-interfaces';
+import { stripTimestamp } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -61,8 +62,9 @@ export default function CatalogosPage() {
   };
 
   const handleDownload = (catalog: Resource) => {
-    triggerDownload(catalog.fullKey, catalog.name);
-    toast.success(`Descargando: ${catalog.name}`);
+    const cleanName = stripTimestamp(catalog.name || catalog.fullKey);
+    triggerDownload(catalog.fullKey, cleanName);
+    toast.success(`Descargando: ${cleanName}`);
   };
 
   useEffect(() => {
@@ -77,7 +79,6 @@ export default function CatalogosPage() {
           'Sube y gestiona tus catalogos PDF de manera simple y segura'
         }
         UploaderComponent={
-          // <CatalogUploadForm onUploadSuccess={handleUploadSuccess} />
           <ResourcesUploadForm
             type="Catalogo"
             onUploadSuccess={fetchCatalogs}
@@ -85,7 +86,6 @@ export default function CatalogosPage() {
           />
         }
         ListComponent={
-          // <CatalogList catalogs={catalogs} onDelete={isAdmin ? handleDeleteRequest : undefined} onDownload={handleDownload} onView={handleView} onRefresh={isAdmin ? fetchCatalogs : undefined}/>
           <ResourcesList
             type="Catalogo"
             fetchedData={catalogs}
