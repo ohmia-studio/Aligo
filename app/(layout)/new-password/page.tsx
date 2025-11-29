@@ -1,15 +1,7 @@
 'use client';
 import ResetPasswordForm from '@/components/auth/ResetPasswordForm';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useState } from 'react';
 
 export default function NewPasswordPage() {
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSessionReady, setIsSessionReady] = useState(false);
-  const [error, setError] = useState('');
-  const searchParams = useSearchParams();
-  const router = useRouter();
-
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-indigo-100 via-white to-blue-200">
       <div className="w-full max-w-md rounded-2xl border border-gray-100 bg-white/90 p-8 shadow-2xl">

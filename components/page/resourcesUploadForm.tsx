@@ -24,8 +24,6 @@ export default function ResourcesUploadForm({
 }: Props) {
   const [isUploading, setIsUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [title, setTitle] = useState('');
-
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) setSelectedFile(file);
@@ -42,11 +40,6 @@ export default function ResourcesUploadForm({
     // Validar que sea un PDF
     if (selectedFile.type !== 'application/pdf') {
       toast.error('Solo se permiten archivos PDF');
-      return;
-    }
-
-    if (!title.trim()) {
-      toast.error('Por favor ingresa un título');
       return;
     }
 
@@ -68,7 +61,9 @@ export default function ResourcesUploadForm({
     try {
       const formData = new FormData();
       formData.append('file', selectedFile);
-      formData.append('title', title.trim());
+      // Agregar prefijo para que el action sepa si es catalogs o manuals
+      const prefix = type === 'Catalogo' ? 'catalogs' : 'manuales';
+      formData.append('prefix', prefix);
 
       const result = await onUploadAction(formData);
 
@@ -76,7 +71,6 @@ export default function ResourcesUploadForm({
         toast.success(result.message || 'Subido'); // Aclarar si manual o catalogo subido
         // Limpiar formulario
         setSelectedFile(null);
-        setTitle('');
         (e.target as HTMLFormElement).reset();
         // Notificar al componente padre
         onUploadSuccess?.();
@@ -99,25 +93,6 @@ export default function ResourcesUploadForm({
       </h2>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <section>
-          <label
-            htmlFor="manual-title"
-            className="text-foreground/80 mb-2 block text-sm font-medium"
-          >
-            Título
-          </label>
-          <input
-            id="manual-title"
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder={'Título del ' + type}
-            disabled={isUploading}
-            className="text-foreground border-base-color placeholder-base-color focus:border-accent focus:ring-accent block w-full rounded-md border px-3 py-2 text-sm placeholder:opacity-35"
-            required
-          />
-        </section>
-
         <section>
           <label
             htmlFor="manual-file"

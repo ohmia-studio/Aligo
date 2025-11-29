@@ -35,7 +35,6 @@ export default function ResourcesList({
   const { showLoader, hideLoader } = useLoader();
   //const router = useRouter();
   const { isAdmin } = usePermissions();
-
   const sliceTimeStamp = (str: string | undefined, key: string) => {
     if (!str) return key;
 
@@ -97,10 +96,7 @@ export default function ResourcesList({
                     {sliceTimeStamp(fd.name, fd.fullKey)}
                   </p>
                   <p className="text-foreground/60 text-xs">
-                    {fd.size
-                      ? `${(Number(fd.size) / 1024).toFixed(1)} KB`
-                      : '—'}{' '}
-                    •{' '}
+                    {fd.size ? fd.size : '—'} •{' '}
                     {fd.lastModified
                       ? new Date(fd.lastModified).toLocaleDateString()
                       : '—'}
@@ -108,16 +104,12 @@ export default function ResourcesList({
                 </section>
                 <section className="flex justify-between">
                   <div className="flex w-4/5 items-center gap-4">
-                    <button
-                      type="button"
-                      className="bg-primary text-base-color-foreground w-[60%] cursor-pointer rounded px-4 py-2 text-center text-sm font-semibold shadow-md transition hover:bg-blue-700 hover:shadow-md/20"
+                    <a
+                      href={`/dashboard/${type === 'Manual' ? 'manuales' : 'catalogos'}/ver?key=${encodeURIComponent(fd.fullKey)}&name=${encodeURIComponent(fd.name || fd.fullKey)}`}
+                      className="bg-primary text-base-color-foreground inline-block w-[60%] cursor-pointer rounded px-4 py-2 text-center text-sm font-semibold shadow-md transition hover:bg-blue-700 hover:shadow-md/20"
                     >
-                      <a
-                        href={`/dashboard/${type === 'Manual' ? 'manuales' : 'catalogos'}/ver?key=${encodeURIComponent(fd.fullKey)}&name=${encodeURIComponent(fd.name || fd.fullKey)}`}
-                      >
-                        Ver {type}
-                      </a>
-                    </button>
+                      Ver {type}
+                    </a>
                     <button
                       onClick={() => handleView(fd)}
                       className="text-accent cursor-pointer text-sm font-medium hover:text-blue-800"
@@ -130,7 +122,7 @@ export default function ResourcesList({
                   {isAdmin && (
                     <AlertDialog>
                       <Dialog
-                        title={`Eliminar "${fd.name}"`}
+                        title={`Eliminar "${sliceTimeStamp(fd.name, fd.fullKey)}"`}
                         description="No se podrá revertir la acción."
                         actionVerb="Borrar"
                         onConfirm={() => performDelete(fd.fullKey)}

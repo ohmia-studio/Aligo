@@ -1,11 +1,5 @@
 import GenericPDFViewPage from '@/components/common/GenericPDFViewPage';
-
-interface ManualViewPageProps {
-  searchParams: Promise<{
-    key?: string;
-    name?: string;
-  }>;
-}
+import { PDFViewPageProps as ManualViewPageProps } from '@/interfaces/documents-interfaces';
 
 export default function ManualViewPage({ searchParams }: ManualViewPageProps) {
   return <GenericPDFViewPage searchParams={searchParams} type="manuales" />;

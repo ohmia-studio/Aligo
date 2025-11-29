@@ -1,13 +1,7 @@
 import BrowserPDFViewer from '@/components/catalogs/BrowserPDFViewer';
+import { GenericPDFViewPageProps } from '@/interfaces/documents-interfaces';
+import { stripTimestamp } from '@/lib/utils';
 import Link from 'next/link';
-
-interface GenericPDFViewPageProps {
-  searchParams: Promise<{
-    key?: string;
-    name?: string;
-  }>;
-  type: 'catalogos' | 'manuales';
-}
 
 export default async function GenericPDFViewPage({
   searchParams,
@@ -19,12 +13,12 @@ export default async function GenericPDFViewPage({
     catalogos: {
       title: 'Catálogos',
       backUrl: '/dashboard/catalogos',
-      apiEndpoint: '/api/catalogos',
+      apiEndpoint: '/api/storage',
     },
     manuales: {
       title: 'Manuales',
       backUrl: '/dashboard/manuales',
-      apiEndpoint: '/api/manuales',
+      apiEndpoint: '/api/storage',
     },
   };
 
@@ -54,7 +48,7 @@ export default async function GenericPDFViewPage({
   // Construir las URLs del PDF
   const pdfUrl = `${currentConfig.apiEndpoint}?key=${encodeURIComponent(key)}&name=${encodeURIComponent(name)}&view=true`;
   const downloadUrl = `${currentConfig.apiEndpoint}?key=${encodeURIComponent(key)}&name=${encodeURIComponent(name)}`;
-
+  const cleanName = stripTimestamp(name);
   // Determinar homeUrl y homeLabel según el rol
   // Ejemplo: puedes obtener el rol del usuario desde contexto, session, etc.
   // Aquí lo simulo con una variable (ajusta según tu lógica real)
@@ -65,7 +59,7 @@ export default async function GenericPDFViewPage({
     <div className="relative h-screen w-full bg-gray-100">
       <BrowserPDFViewer
         pdfUrl={pdfUrl}
-        catalogName={decodeURIComponent(name)}
+        catalogName={cleanName}
         downloadUrl={downloadUrl}
         backUrl={currentConfig.backUrl}
         backLabel={`Volver a ${currentConfig.title}`}

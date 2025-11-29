@@ -43,7 +43,6 @@ export default function AuthForm() {
       if (isSuccess && !state.resetMode && result.data?.user) {
         dispatch(
           setUser({
-            id: result.data.user.id,
             email: result.data.user.email,
             rol: result.data.role,
             name: result.data.user.email, // Por ahora usamos el email como nombre

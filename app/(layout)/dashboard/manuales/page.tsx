@@ -4,9 +4,14 @@ import CatalogListSkeleton from '@/components/catalogs/CatalogListSkeleton';
 import { AdminManagerPageTemplate } from '@/components/page/adminManagerPageTemplate';
 import ResourcesList from '@/components/page/resourcesList';
 import ResourcesUploadForm from '@/components/page/resourcesUploadForm';
-import { deleteManualAction } from '@/features/manuals/actions/deleteManual';
-import { uploadManualAction } from '@/features/manuals/actions/uploadManual';
+import { triggerDownload } from '@/features/storage/client';
+import {
+  deleteAction,
+  listAction,
+  uploadAction,
+} from '@/features/storage/storage';
 import { Resource } from '@/interfaces/resource-interfaces';
+import { stripTimestamp } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -15,10 +20,12 @@ export default function ManualsPage() {
 
   const fetchManuals = async () => {
     try {
-      const res = await fetch('/api/manuales', { cache: 'no-store' });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = await res.json();
-      setManuals(json.manuals ?? []);
+      const result = await listAction('manuales');
+      if (result && result.status === 200) {
+        setManuals(result.data?.manuals || []);
+      } else {
+        toast.error(result?.message || 'Error cargando manuales');
+      }
     } catch (err: any) {
       console.error('[ManualsPage] fetchManuals error:', err);
       toast.error('Error cargando manuales');
@@ -31,14 +38,9 @@ export default function ManualsPage() {
 
   // descarga centralizada (igual que en catalogos)
   const handleDownload = (m: Resource) => {
-    const url = `/api/manuales?key=${encodeURIComponent(m.fullKey)}&name=${encodeURIComponent(m.name || m.fullKey)}`;
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = m.name || 'manual.pdf';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    toast.success(`Descargando: ${m.name || 'manual'}`);
+    const cleanName = stripTimestamp(m.name || m.fullKey);
+    triggerDownload(m.fullKey, cleanName);
+    toast.success(`Descargando: ${cleanName}`);
   };
 
   return (
@@ -52,7 +54,7 @@ export default function ManualsPage() {
         <ResourcesUploadForm
           type="Manual"
           onUploadSuccess={fetchManuals}
-          onUploadAction={uploadManualAction}
+          onUploadAction={uploadAction}
         />
       }
       ListComponent={
@@ -60,7 +62,7 @@ export default function ManualsPage() {
         <ResourcesList
           type="Manual"
           fetchedData={manuals}
-          onDeleteAction={deleteManualAction}
+          onDeleteAction={(key) => deleteAction('manuales', key)}
           onDownload={handleDownload}
           onRefresh={fetchManuals}
         />
