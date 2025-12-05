@@ -17,7 +17,6 @@ export default function AltaEmpleadoPage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const next = { ...form, [e.target.name]: e.target.value };
     setForm(next);
-    // console.debug('form', next); // descomentar si querés depurar
   };
 
   const validar = () => {

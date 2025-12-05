@@ -55,7 +55,12 @@ export async function createAuthUser(payload: {
   user_metadata?: Record<string, any>;
 }) {
   try {
-    const resp = await supabaseAdmin.auth.admin.createUser(payload);
+    const resp = await supabaseAdmin.auth.admin.createUser({
+      email: payload.email,
+      password: payload.password,
+      user_metadata: payload.user_metadata,
+      email_confirm: true,
+    });
     if ((resp as any).error) return fail((resp as any).error);
     return ok((resp as any).data ?? resp);
   } catch (err) {
@@ -66,7 +71,6 @@ export async function createAuthUser(payload: {
 export async function deleteAuthUser(authId: string) {
   try {
     const resp = await supabaseAdmin.auth.admin.deleteUser(authId);
-    // supabase-admin returns { error } on failure
     if ((resp as any).error) return fail((resp as any).error);
     return ok(null);
   } catch (err) {

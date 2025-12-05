@@ -2,6 +2,7 @@
 import { Result } from '@/interfaces/server-response-interfaces';
 import {
   createAuthUser,
+  deleteAuthUser,
   findPersonaByDniOrEmail,
   insertPersona,
 } from './employeeRepository';
@@ -98,11 +99,11 @@ export async function altaEmpleadoAction(formData: FormData): Promise<Result> {
 
     if (insertError) {
       console.error('Error insertando Persona:', insertError);
-      // rollback: borrar user en Auth
+      // rollback correcto: borrar user en Auth
       try {
-        await createAuthUser({ email: '', password: '' }); // noop placeholder si no hay delete wrapper
+        await deleteAuthUser(authId);
       } catch (e) {
-        // si tenés deleteAuthUser en repo, usalo aquí para rollback
+        console.error('Rollback deleteAuthUser falló:', e);
       }
       return {
         status: 500,
