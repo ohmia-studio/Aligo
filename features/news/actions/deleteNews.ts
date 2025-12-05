@@ -1,7 +1,7 @@
 'use server';
 
 import { deleteNew } from "@/features/news/news";
-import { newsStorageFolderSnakeCase } from "@/lib/storageStringCase";
+import { newsStorageFolderSnakeCase, sanitizeForStorage } from "@/lib/storageStringCase";
 import { revalidatePath } from 'next/cache';
 
 interface NewKey {
@@ -11,7 +11,7 @@ interface NewKey {
 
 export async function deleteNewsAction(payload: NewKey) {
 
-    const folder = newsStorageFolderSnakeCase(payload.title, payload.uploadDate);
+    const folder = sanitizeForStorage(newsStorageFolderSnakeCase(payload.title, payload.uploadDate));
 
     // Ejecuta la lógica de negocio (usa supabaseAdmin dentro)
     const result = await deleteNew(payload.title, payload.uploadDate, folder);

@@ -1,0 +1,43 @@
+'use server';
+
+import { Result } from '@/interfaces/server-response-interfaces';
+import { requireServerAuth } from '@/lib/auth/requireServerAuth';
+import { updateContact } from './contactRepository';
+import { validateContactPayload } from './contactValidation';
+
+export async function updateContactAction(payload: {
+  id: number;
+  nombre: string;
+  telefono?: string;
+  email?: string;
+}): Promise<Result> {
+  const auth = await requireServerAuth({ allowedRoles: 'admin' });
+  if (!auth.ok) {
+    return { status: 401, message: 'Unauthorized', data: null };
+  }
+
+  // Validaciones usando helper centralizado
+  const validation = validateContactPayload({
+    nombre: payload.nombre,
+    telefono: payload.telefono,
+    email: payload.email,
+  });
+  if (!validation.isValid) {
+    return { status: 400, message: validation.errors!, data: null };
+  }
+
+  try {
+    const finalPayload = {
+      id: payload.id,
+      ...validation.validatedData!,
+    };
+
+    const { data, error, status, message } = await updateContact(finalPayload);
+    if (error)
+      return { status: status || 500, message: message ?? 'Error', data: null };
+    return { status: 200, message: 'Contacto actualizado con éxito', data };
+  } catch (err) {
+    console.error('Error updateContactAction', err);
+    return { status: 500, message: 'Error inesperado', data: null };
+  }
+}

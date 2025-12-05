@@ -20,7 +20,7 @@ export interface AuthState {
 }
 
 export interface User {
-  id: string;
+  id?: string;
   email: string;
   rol: 'admin' | 'empleado' | 'usuario';
   name?: string;
