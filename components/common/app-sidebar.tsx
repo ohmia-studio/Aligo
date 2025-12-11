@@ -16,6 +16,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import * as React from 'react';
+import { useSelector } from 'react-redux';
 import { ThemeToggle } from '../tiptap/tiptap-templates/theme-toggle';
 
 // This is sample data.
@@ -66,6 +67,13 @@ const navData = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
+  const auth = useSelector((state: any) => state.auth);
+  const userFromState = auth?.user;
+  const displayUser = {
+    name: userFromState?.name || userFromState?.email || navData.user.name,
+    email: userFromState?.email || navData.user.email,
+    avatar: navData.user.avatar,
+  };
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -91,7 +99,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarContent>
       <SidebarFooter>
         <ThemeToggle />
-        <NavUser user={navData.user} />
+        <NavUser user={displayUser} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
