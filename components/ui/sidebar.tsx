@@ -265,14 +265,17 @@ function SidebarTrigger({
       data-slot="sidebar-trigger"
       variant="outline"
       size="icon"
-      className={cn('size-7', className)}
+      className={cn(
+        'text-base-color border-border bg-background/50 hover:bg-background/70 size-7',
+        className
+      )}
       onClick={(event) => {
         onClick?.(event);
         toggleSidebar();
       }}
       {...props}
     >
-      <ChevronRight size={14} />
+      <ChevronRight size={14} className="text-base-color" />
       <span className="sr-only">Toggle Sidebar</span>
     </Button>
   );

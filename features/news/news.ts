@@ -6,11 +6,18 @@ import { sanitizeForStorage } from '@/lib/storageStringCase';
 import { getSupabaseServer } from '@/lib/supabase/supabaseServer';
 
 // Por alguna razon el uploadDate (y siempre que recibo desde la BD la fecha, la recibo en String, por más de que esté el tipo de Date o TimeStamp)
-export async function deleteNew(title: string, uploadDate: Date, folder: string) {
-
+export async function deleteNew(
+  title: string,
+  uploadDate: Date,
+  folder: string
+) {
   const supabaseServer = await getSupabaseServer();
   try {
-    const { data, error } = await supabaseServer.from('Novedad').delete().eq('titulo', title).eq('created_at', uploadDate);
+    const { data, error } = await supabaseServer
+      .from('Novedad')
+      .delete()
+      .eq('titulo', title)
+      .eq('created_at', uploadDate);
     if (error) throw error;
 
     const { data: files, error: listError } = await supabaseServer.storage
@@ -22,7 +29,7 @@ export async function deleteNew(title: string, uploadDate: Date, folder: string)
     if (files && files.length > 0) {
       // Obtener todos los archivos de la carpeta del bucket. No se puede eliminar llamando unicamente a la carpeta
       // ya que no existe una carpeta en si, sino que es una forma visual de mostrar rutas de archivos ordenados.
-      const paths = files.map(f => `${folder}/${f.name}`);
+      const paths = files.map((f) => `${folder}/${f.name}`);
       const { error: removeError } = await supabaseServer.storage
         .from('Novedades')
         .remove(paths);
@@ -33,15 +40,15 @@ export async function deleteNew(title: string, uploadDate: Date, folder: string)
     return {
       status: 200,
       message: 'Novedad eliminada correctamente',
-      data: null
-    }
+      data: null,
+    };
   } catch (err: any) {
     console.error('Error en deleteNew', err);
     return {
       status: 500,
       message: err?.message || 'unexpected error in deleteNew',
-      data: null
-    }
+      data: null,
+    };
   }
 }
 
@@ -75,7 +82,9 @@ export async function deleteUnusedImage(
 ) {
   const supabaseServer = await getSupabaseServer();
 
-  const { error } = await supabaseServer.storage.from('Novedades').remove(removedImageUrls);
+  const { error } = await supabaseServer.storage
+    .from('Novedades')
+    .remove(removedImageUrls);
   if (error) throw error;
 }
 
@@ -86,14 +95,16 @@ export async function moveExistingImage(
 ): Promise<Result> {
   const supabaseServer = await getSupabaseServer();
   try {
-
     const sanitizedOldUrl = sanitizeForStorage(oldUrl);
     const sanitizedNewUrl = sanitizeForStorage(newUrl);
     const sanitizedFileName = sanitizeForStorage(fileName);
 
     const { data, error } = await supabaseServer.storage
       .from('Novedades')
-      .move(sanitizedOldUrl.concat('/', sanitizedFileName), sanitizedNewUrl.concat('/', sanitizedFileName));
+      .move(
+        sanitizedOldUrl.concat('/', sanitizedFileName),
+        sanitizedNewUrl.concat('/', sanitizedFileName)
+      );
 
     if (error) throw error;
 
@@ -152,7 +163,15 @@ export async function uploadNewImage(
   }
 }
 
-export async function updateNew({ antiguoTitulo, titulo, tag, descripcion, created_at, removedImageUrls, bucket_folder_url }: UpdateNewsInput): Promise<Result> {
+export async function updateNew({
+  antiguoTitulo,
+  titulo,
+  tag,
+  descripcion,
+  created_at,
+  removedImageUrls,
+  bucket_folder_url,
+}: UpdateNewsInput): Promise<Result> {
   const supabaseServer = await getSupabaseServer();
 
   try {
@@ -182,7 +201,7 @@ export async function updateNew({ antiguoTitulo, titulo, tag, descripcion, creat
         titulo: titulo,
         descripcion: descripcion,
         tag: tag || null,
-        bucket_folder_url: bucket_folder_url
+        bucket_folder_url: bucket_folder_url,
       })
       .eq('titulo', antiguoTitulo)
       .eq('created_at', created_at.toISOString());
@@ -197,14 +216,14 @@ export async function updateNew({ antiguoTitulo, titulo, tag, descripcion, creat
         titulo: titulo,
         descripcion: descripcion,
         tag: tag,
-      }
+      },
     };
   } catch (err: any) {
     console.error('Error en updateNewsAction', err);
     return {
       status: 500,
       message: err.message || 'Unexpected error in updateNewsAction',
-      data: null
+      data: null,
     };
   }
 }
@@ -261,19 +280,38 @@ export async function uploadNew({
   }
 }
 
-export async function retrieveNews(): Promise<Result> {
+export async function retrieveNews(params?: {
+  query?: string;
+  tagName?: string | null;
+  limit?: number;
+  sort?: 'recent' | 'oldest';
+}): Promise<Result> {
   const supabaseServer = await getSupabaseServer();
   try {
-    const { data: newData, error: newError } = await supabaseServer
-      .from('Novedad')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(10);
+    const limit = params?.limit ?? 10;
+    const sortAsc = params?.sort === 'oldest' ? true : false;
+    let qb = supabaseServer.from('Novedad').select('*');
+
+    if (params?.tagName) {
+      qb = qb.eq('tag', params.tagName);
+    }
+    if (params?.query) {
+      // Filter only by title server-side to avoid JSON issues in descripcion
+      qb = qb.ilike('titulo', `%${params.query}%`);
+    }
+
+    const { data: newData, error: newError } = await qb
+      .order('created_at', { ascending: sortAsc })
+      .limit(limit);
 
     if (newError) {
       return { status: 500, message: newError.message, data: null };
     }
-    return { status: 200, message: 'News retrieved succesfully', data: newData };
+    return {
+      status: 200,
+      message: 'News retrieved succesfully',
+      data: newData,
+    };
   } catch (err: any) {
     console.error('Error en retrieveNews:', err);
     return {
@@ -296,7 +334,11 @@ export async function retrieveNew(id: number): Promise<Result> {
     if (newError) {
       return { status: 500, message: newError.message, data: null };
     }
-    return { status: 200, message: 'Single new retrieved succesfully', data: newData };
+    return {
+      status: 200,
+      message: 'Single new retrieved succesfully',
+      data: newData,
+    };
   } catch (err: any) {
     console.error('Error en retrieveNews:', err);
     return {
