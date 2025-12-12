@@ -4,14 +4,16 @@ import { deleteEmployeeAction } from '@/features/employees/actions/deleteEmploye
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Employee } from '@/interfaces/Employee-interfaces';
 import { Result } from '@/interfaces/server-response-interfaces';
+import { AnimatePresence, motion } from 'motion/react';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { Dialog } from '../common/alertDialog';
 import ServerErrorPage from '../page/serverErrorPage';
 import { AlertDialog, AlertDialogTrigger } from '../ui/alert-dialog';
 import { Spinner } from '../ui/spinner';
 import EmployeeCardMobile from './EmployeeCardMobile';
+import EmployeeForm from './EmployeeForm';
 import EmployeeTableDesktop from './EmployeeTableDesktop';
 
 export default function Employees({ employees }: { employees: Result }) {
@@ -19,9 +21,11 @@ export default function Employees({ employees }: { employees: Result }) {
   const router = useRouter();
 
   const [selected, setSelected] = useState<Set<number | string>>(new Set());
-  //   const [selected, setSelected] = useState<Record<number, string>>();
-
   const [loadingDelete, setLoadingDelete] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [employeeEdit, setEmployeeEdit] = useState<Employee | undefined>(
+    undefined
+  );
 
   const toggle = (id: string | number) => {
     const next = new Set(selected);
@@ -42,7 +46,6 @@ export default function Employees({ employees }: { employees: Result }) {
     if (selected.size === 0) return;
 
     setLoadingDelete(true);
-
     try {
       const formData = new FormData();
       selected.forEach((id) => formData.append('selected', String(id)));
@@ -64,6 +67,20 @@ export default function Employees({ employees }: { employees: Result }) {
     }
   };
 
+  const handleAddClick = () => {
+    setEmployeeEdit(undefined);
+    setIsFormOpen((prev) => !prev);
+  };
+
+  const handleEdit = (emp: Employee) => {
+    setEmployeeEdit(emp);
+    setIsFormOpen(true);
+  };
+
+  useEffect(() => {
+    if (employeeEdit) setIsFormOpen(true);
+  }, [employeeEdit]);
+
   const selectedIds = [...selected];
   const employeeToDelete =
     selected.size === 1
@@ -76,15 +93,17 @@ export default function Employees({ employees }: { employees: Result }) {
     <div className="flex flex-col items-center gap-8 pt-8">
       <header className="flex flex-row flex-wrap items-center gap-4">
         <h1 className="text-base-color text-2xl font-bold">
-          Listado de contactos
+          Listado de empleados
         </h1>
 
         <div className="flex gap-4">
           <button
             className="from-primary to-primary/90 hover:bg-primary hover:border-accent-foreground text-base-color-foreground rounded-full bg-gradient-to-r px-5 py-2 font-semibold shadow-md transition duration-150 hover:scale-105 hover:cursor-pointer hover:border-2"
-            onClick={() => router.push('/dashboard/admin/empleados/alta')}
+            onClick={handleAddClick}
           >
-            + Agregar empleado
+            {isFormOpen && !employeeEdit
+              ? '− Cerrar formulario'
+              : '+ Agregar empleado'}
           </button>
 
           <AlertDialog>
@@ -118,6 +137,36 @@ export default function Employees({ employees }: { employees: Result }) {
         </div>
       </header>
 
+      {/* Formulario animado (igual que Contacts) */}
+      <AnimatePresence initial={false}>
+        {isFormOpen && (
+          <motion.div
+            key="employee-form"
+            initial={{ opacity: 0, height: 'var(--scale-from,0)' }}
+            animate={{ opacity: 1, height: 'var(--scale-to,1)' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.4, ease: 'easeInOut' }}
+            className="overflow-hidden [--scale-from:0] [--scale-to:auto]"
+          >
+            <EmployeeForm
+              employee={employeeEdit}
+              onCancel={() => {
+                setIsFormOpen(false);
+                setEmployeeEdit(undefined);
+              }}
+              onSuccess={() => {
+                setIsFormOpen(false);
+                setEmployeeEdit(undefined);
+                router.refresh();
+                toast.success(
+                  employeeEdit ? 'Empleado actualizado' : 'Empleado creado'
+                );
+              }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {!employees.data.length ? (
         <p className="text-base-color/80">
           🤔 No hay empleados cargados aún...
@@ -130,11 +179,7 @@ export default function Employees({ employees }: { employees: Result }) {
               employee={e}
               selected={selected.has(e.id)}
               onToggle={() => toggle(e.id)}
-              onEdit={() =>
-                window.location.assign(
-                  `/dashboard/admin/empleados/${e.id}/editar`
-                )
-              }
+              onEdit={() => handleEdit(e)}
             />
           ))}
         </div>
@@ -145,6 +190,7 @@ export default function Employees({ employees }: { employees: Result }) {
           toggle={toggle}
           allSelected={allSelected}
           toggleSelectAll={toggleSelectAll}
+          onEdit={(emp) => handleEdit(emp)}
         />
       )}
     </div>
