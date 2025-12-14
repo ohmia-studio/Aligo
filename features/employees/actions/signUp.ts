@@ -1,6 +1,13 @@
 'use server';
 import { Result } from '@/interfaces/server-response-interfaces';
-import { validateEmail } from '@/lib/validations';
+import {
+  normalizePhoneNumber,
+  validateApellido,
+  validateDNI,
+  validateEmail,
+  validateNombre,
+  validateTelefono,
+} from '@/lib/validations';
 import {
   createAuthUser,
   deleteAuthUser,
@@ -14,7 +21,7 @@ import {
 import { sendConfirmationEmail } from './sendConfirmationEmail';
 
 export async function altaEmpleadoAction(formData: FormData): Promise<Result> {
-  const id = formData.get('id')?.toString().trim(); // NEW: detect edit
+  const id = formData.get('id')?.toString().trim();
   const dni = formData.get('dni')?.toString().trim();
   const nombre = formData.get('nombre')?.toString().trim();
   const apellido = formData.get('apellido')?.toString().trim();
@@ -29,10 +36,33 @@ export async function altaEmpleadoAction(formData: FormData): Promise<Result> {
     };
   }
 
-  const errorEmail = validateEmail(email);
-  if (errorEmail) return { status: 400, message: 'Email inválido', data: null };
-  if (dni && dni.replace(/\D/g, '').length < 6)
-    return { status: 400, message: 'DNI demasiado corto', data: null };
+  // Validar todos los campos
+  const dniError = dni ? validateDNI(dni) : null;
+  if (dniError) return { status: 400, message: dniError, data: null };
+
+  const nombreError = validateNombre(nombre);
+  if (nombreError) return { status: 400, message: nombreError, data: null };
+
+  const apellidoError = validateApellido(apellido);
+  if (apellidoError) return { status: 400, message: apellidoError, data: null };
+
+  const emailError = validateEmail(email);
+  if (emailError) return { status: 400, message: emailError, data: null };
+
+  // Validar teléfono básico
+  const telefonoError = validateTelefono(telefono);
+  if (telefonoError) return { status: 400, message: telefonoError, data: null };
+
+  // Normalizar y validar teléfono con libphonenumber
+  const { number: telefonoNormalizado, error: telefonoNormError } =
+    normalizePhoneNumber(telefono);
+  if (telefonoNormError || !telefonoNormalizado) {
+    return {
+      status: 400,
+      message: telefonoNormError || 'Error normalizando teléfono',
+      data: null,
+    };
+  }
 
   // EDIT FLOW
   if (id) {
@@ -81,7 +111,7 @@ export async function altaEmpleadoAction(formData: FormData): Promise<Result> {
         nombre,
         apellido,
         email,
-        telefono,
+        telefono: telefonoNormalizado,
       });
       if (updErr) {
         console.error('Error actualizando Persona:', updErr);
@@ -96,11 +126,15 @@ export async function altaEmpleadoAction(formData: FormData): Promise<Result> {
       if (persona.auth_id) {
         const { error: authUpdErr } = await updateAuthUser(persona.auth_id, {
           email,
-          user_metadata: { nombre, apellido, dni: persona.dni, telefono }, // ensure consistent dni
+          user_metadata: {
+            nombre,
+            apellido,
+            dni: persona.dni,
+            telefono: telefonoNormalizado,
+          },
         });
         if (authUpdErr) {
           console.error('Error actualizando usuario en Auth:', authUpdErr);
-          // We don’t rollback Persona update; report partial success or failure
           return {
             status: 200,
             message:
@@ -125,10 +159,7 @@ export async function altaEmpleadoAction(formData: FormData): Promise<Result> {
     }
   }
 
-  // CREATE FLOW (sin cambios en lógica de negocio)
-  // comprobar duplicados (repo retorna data/error)
-
-  // Validar que DNI existe en CREATE flow
+  // CREATE FLOW
   if (!dni) {
     return {
       status: 400,
@@ -169,7 +200,12 @@ export async function altaEmpleadoAction(formData: FormData): Promise<Result> {
     const { data: authData, error: authError } = await createAuthUser({
       email,
       password: passwordTemporal,
-      user_metadata: { nombre, apellido, dni, telefono },
+      user_metadata: {
+        nombre,
+        apellido,
+        dni,
+        telefono: telefonoNormalizado,
+      },
     });
 
     if (authError || !authData?.user?.id) {
@@ -188,7 +224,7 @@ export async function altaEmpleadoAction(formData: FormData): Promise<Result> {
       nombre,
       apellido,
       email,
-      telefono,
+      telefono: telefonoNormalizado, // usar teléfono normalizado
       rol: 'empleado',
       auth_id: authId,
     });

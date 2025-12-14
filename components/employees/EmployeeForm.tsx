@@ -1,6 +1,13 @@
 'use client';
 
 import { altaEmpleadoAction } from '@/features/employees/actions/signUp';
+import {
+  validateApellido,
+  validateDNI,
+  validateEmail,
+  validateNombre,
+  validateTelefono,
+} from '@/lib/validations';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -48,26 +55,18 @@ export default function EmployeeForm({
     setForm(next);
   };
 
-  const validar = () => {
-    const emailRegex = /^\S+@\S+\.\S+$/;
-    if (!form.dni || form.dni.replace(/\D/g, '').length < 6) {
-      toast.error('DNI inválido');
-      return false;
-    }
-    if (!form.nombre || form.nombre.length < 2) {
-      toast.error('Nombre demasiado corto');
-      return false;
-    }
-    if (!form.apellido || form.apellido.length < 2) {
-      toast.error('Apellido demasiado corto');
-      return false;
-    }
-    if (!form.email || !emailRegex.test(form.email)) {
-      toast.error('Email inválido');
-      return false;
-    }
-    if (!form.telefono || !/^[0-9+\s()-]{6,20}$/.test(form.telefono)) {
-      toast.error('Teléfono inválido');
+  const validar = (): boolean => {
+    const errors = [
+      validateDNI(form.dni),
+      validateNombre(form.nombre),
+      validateApellido(form.apellido),
+      validateEmail(form.email),
+      validateTelefono(form.telefono),
+    ];
+
+    const firstError = errors.find((err) => err !== null);
+    if (firstError) {
+      toast.error(firstError);
       return false;
     }
     return true;
