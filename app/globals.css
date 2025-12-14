@@ -1,9 +1,9 @@
 @import 'tailwindcss';
 @plugin 'tailwindcss-animate';
 
-/* @import '../styles/_variables.scss'; */
-/* @import '../styles/_keyframe-animations.scss'; */
-/*---break---*/
+@import '../styles/_variables.scss';
+@import '../styles/_keyframe-animations.scss';
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

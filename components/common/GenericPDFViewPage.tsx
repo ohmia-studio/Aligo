@@ -1,7 +1,7 @@
-import BrowserPDFViewer from '@/components/catalogs/BrowserPDFViewer';
 import { GenericPDFViewPageProps } from '@/interfaces/documents-interfaces';
 import { stripTimestamp } from '@/lib/utils';
-import Link from 'next/link';
+import ServerErrorPage from '../page/serverErrorPage';
+import BrowserPDFViewer from './BrowserPDFViewer';
 
 export default async function GenericPDFViewPage({
   searchParams,
@@ -25,24 +25,7 @@ export default async function GenericPDFViewPage({
   const currentConfig = config[type];
 
   if (!key || !name) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-100">
-        <div className="text-center">
-          <h1 className="mb-4 text-2xl font-bold text-gray-900">
-            Error: Parámetros faltantes
-          </h1>
-          <p className="mb-4 text-gray-600">
-            No se pudo cargar el PDF. Faltan parámetros requeridos.
-          </p>
-          <Link
-            href={currentConfig.backUrl}
-            className="inline-block rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-          >
-            Volver a {currentConfig.title}
-          </Link>
-        </div>
-      </div>
-    );
+    return <ServerErrorPage errorCode={400} />;
   }
 
   // Construir las URLs del PDF
@@ -56,7 +39,7 @@ export default async function GenericPDFViewPage({
   const homeUrl = userRole === 'admin' ? '/dashboard/admin' : '/dashboard';
 
   return (
-    <div className="relative h-screen w-full bg-gray-100">
+    <div className="relative h-[90svh] w-full">
       <BrowserPDFViewer
         pdfUrl={pdfUrl}
         catalogName={cleanName}

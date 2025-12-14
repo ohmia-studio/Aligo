@@ -234,7 +234,7 @@ export default function NewsForm({
       className="flex h-full flex-col rounded-lg border shadow md:p-4"
     >
       <section className="text-base-color h-full">
-        <div className="flex w-full flex-col gap-8 p-4 md:p-0 lg:flex-row">
+        <div className="flex w-full flex-col gap-8 p-4 md:mb-4 md:p-0 lg:flex-row">
           <div className="w-full">
             <label className="text-sm font-medium">Título</label>
             <input
@@ -247,7 +247,7 @@ export default function NewsForm({
                   titulo: e.target.value,
                 }))
               }
-              className="border-base-color w-full rounded border p-2"
+              className="focus:border-base-color w-full rounded border p-2"
               required
             />
           </div>

@@ -106,13 +106,13 @@ export default function ResourcesList({
                   <div className="flex w-4/5 items-center gap-4">
                     <a
                       href={`/dashboard/${type === 'Manual' ? 'manuales' : 'catalogos'}/ver?key=${encodeURIComponent(fd.fullKey)}&name=${encodeURIComponent(fd.name || fd.fullKey)}`}
-                      className="bg-primary text-base-color-foreground inline-block w-[60%] cursor-pointer rounded px-4 py-2 text-center text-sm font-semibold shadow-md transition hover:bg-blue-700 hover:shadow-md/20"
+                      className="bg-primary text-base-color-foreground inline-block w-[60%] cursor-pointer rounded px-4 py-2 text-center text-sm font-semibold shadow-md transition hover:shadow-md/20 hover:brightness-120"
                     >
                       Ver {type}
                     </a>
                     <button
                       onClick={() => handleView(fd)}
-                      className="text-accent cursor-pointer text-sm font-medium hover:text-blue-800"
+                      className="text-accent cursor-pointer text-sm font-medium hover:brightness-120"
                       title="Descargar"
                     >
                       <DownloadIcon />

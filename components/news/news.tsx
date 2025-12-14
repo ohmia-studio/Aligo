@@ -85,7 +85,11 @@ export default function News({
                   >
                     <motion.span
                       key={isOpen ? 'minus' : 'plus'}
-                      className="text-base-color absolute text-2xl leading-none font-bold"
+                      initial={{ rotate: isOpen ? 90 : -90, opacity: 0 }}
+                      animate={{ rotate: 0, opacity: 1 }}
+                      exit={{ rotate: isOpen ? -90 : 90, opacity: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="text-accent absolute text-2xl leading-none font-bold"
                     >
                       {isOpen ? '−' : '+'}
                     </motion.span>

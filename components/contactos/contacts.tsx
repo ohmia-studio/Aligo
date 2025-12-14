@@ -99,7 +99,7 @@ export default function Contacts({ contacts }: { contacts: Result }) {
           Listado de contactos
         </h1>
 
-        <div className="flex gap-4">
+        <div className="flex items-center gap-4">
           <Button
             onClick={() => setIsFormOpen(!isFormOpen)}
             variant="outline"
