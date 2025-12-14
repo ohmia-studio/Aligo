@@ -111,3 +111,76 @@ export async function deletePersonaByIds(ids: Array<string | number>) {
     return fail(err);
   }
 }
+
+export async function findPersonaById(id: string | number) {
+  try {
+    const resp = await supabaseAdmin
+      .from('Persona')
+      .select('id, dni, nombre, apellido, email, telefono, auth_id')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (resp.error) return fail(resp.error);
+    return ok(resp.data ?? null);
+  } catch (err) {
+    return fail(err);
+  }
+}
+
+export async function findPersonaByEmailExcludingId(
+  email: string,
+  excludeId: string | number
+) {
+  try {
+    const resp = await supabaseAdmin
+      .from('Persona')
+      .select('id')
+      .eq('email', email)
+      .neq('id', excludeId)
+      .limit(1)
+      .maybeSingle();
+
+    if (resp.error) return fail(resp.error);
+    return ok(resp.data ?? null);
+  } catch (err) {
+    return fail(err);
+  }
+}
+
+export async function updatePersonaById(
+  id: string | number,
+  data: { nombre: string; apellido: string; email: string; telefono: string }
+) {
+  try {
+    const resp = await supabaseAdmin
+      .from('Persona')
+      .update({
+        nombre: data.nombre,
+        apellido: data.apellido,
+        email: data.email,
+        telefono: data.telefono,
+      })
+      .eq('id', id);
+
+    if (resp.error) return fail(resp.error);
+    return ok(resp.data ?? null);
+  } catch (err) {
+    return fail(err);
+  }
+}
+
+export async function updateAuthUser(
+  authId: string,
+  payload: { email: string; user_metadata: Record<string, any> }
+) {
+  try {
+    const resp = await supabaseAdmin.auth.admin.updateUserById(authId, {
+      email: payload.email,
+      user_metadata: payload.user_metadata,
+    });
+    if ((resp as any).error) return fail((resp as any).error);
+    return ok((resp as any).data ?? resp);
+  } catch (err) {
+    return fail(err);
+  }
+}
