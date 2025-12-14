@@ -12,10 +12,15 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { useEffect, useState } from 'react';
+import { setTheme, toggleTheme } from '@/store/themeSlice';
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 
 export function ThemeToggle() {
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
+  const dispatch = useDispatch();
+  const currentTheme = useSelector((state: any) => state.theme?.theme) as
+    | 'light'
+    | 'dark';
   // TODO: Testear si en todas las pc te pone por defecto si o si el modo oscuro...
   /*
   useEffect(() => {
@@ -26,17 +31,21 @@ export function ThemeToggle() {
   }, []);
 */
   useEffect(() => {
-    const initialDarkMode =
-      !!document.querySelector('meta[name="color-scheme"][content="dark"]') ||
-      window.matchMedia('(prefers-color-scheme: dark)').matches;
-    setIsDarkMode(initialDarkMode);
-  }, []);
+    // On first mount, if theme not set, infer from system; else apply stored theme
+    if (!currentTheme) {
+      const systemPrefersDark = window.matchMedia(
+        '(prefers-color-scheme: dark)'
+      ).matches;
+      dispatch(setTheme(systemPrefersDark ? 'dark' : 'light'));
+    } else {
+      document.documentElement.classList.toggle(
+        'dark',
+        currentTheme === 'dark'
+      );
+    }
+  }, [currentTheme, dispatch]);
 
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', isDarkMode);
-  }, [isDarkMode]);
-
-  const toggleDarkMode = () => setIsDarkMode((isDark) => !isDark);
+  const toggleDarkMode = () => dispatch(toggleTheme());
 
   return (
     <Tooltip>
@@ -44,9 +53,9 @@ export function ThemeToggle() {
         <Button
           className="bg-background/5 hover:bg-foreground/5 text-base-color hover:cursor-pointer"
           onClick={toggleDarkMode}
-          aria-label={`Switch to ${isDarkMode ? 'light' : 'dark'} mode`}
+          aria-label={`Switch to ${currentTheme === 'dark' ? 'light' : 'dark'} mode`}
         >
-          {isDarkMode ? (
+          {currentTheme === 'dark' ? (
             <MoonStarIcon className="tiptap-button-icon" />
           ) : (
             <SunIcon className="tiptap-button-icon" />

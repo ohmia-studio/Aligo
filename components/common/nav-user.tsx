@@ -1,6 +1,10 @@
 'use client';
 
+import { logoutUser } from '@/features/auth/logout';
+import { clearUser } from '@/store/authSlice';
 import { ChevronsUpDown, LogOut } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useDispatch } from 'react-redux';
 
 import {
   DropdownMenu,
@@ -27,6 +31,16 @@ export function NavUser({
   };
 }) {
   const { isMobile } = useSidebar();
+  const dispatch = useDispatch();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    const result = await logoutUser();
+    if (result.status === 200) {
+      dispatch(clearUser());
+      router.push('/login');
+    }
+  };
 
   return (
     <SidebarMenu>
@@ -65,7 +79,7 @@ export function NavUser({
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout}>
               <LogOut />
               Log out
             </DropdownMenuItem>
