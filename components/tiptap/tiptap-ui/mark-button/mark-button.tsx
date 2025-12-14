@@ -114,7 +114,7 @@ export const MarkButton = React.forwardRef<HTMLButtonElement, MarkButtonProps>(
       >
         {children ?? (
           <>
-            <Icon className="tiptap-button-icon" />
+            {Icon ? React.createElement(Icon, { className: "tiptap-button-icon" }) : null}
             {text && <span className="tiptap-button-text">{text}</span>}
             {showShortcut && (
               <MarkShortcutBadge type={type} shortcutKeys={shortcutKeys} />

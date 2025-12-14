@@ -47,7 +47,12 @@ export interface UseMarkConfig {
   onToggled?: () => void
 }
 
-export const markIcons = {
+export const markIcons: Partial<
+  Record<
+    Mark,
+    React.MemoExoticComponent<(props: React.SVGProps<SVGSVGElement>) => React.ReactElement>
+  >
+> = {
   bold: BoldIcon,
   italic: ItalicIcon,
   underline: UnderlineIcon,
