@@ -12,7 +12,7 @@ const nextConfig: NextConfig = {
   // Configuración experimental para Server Actions con archivos grandes
   experimental: {
     serverActions: {
-      bodySizeLimit: '50mb', // Permitir hasta 50MB en Server Actions
+      bodySizeLimit: '150mb', // Permitir hasta 150MB en Server Actions
     },
   },
 
