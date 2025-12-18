@@ -24,8 +24,8 @@ export default async function GenericPDFViewPage({
   const currentConfig = config[type];
 
   // Construir las URLs del PDF
-  const pdfUrl = `${currentConfig.apiEndpoint}?key=${encodeURIComponent(key!)}&name=${encodeURIComponent(name!)}&view=true`;
-  const downloadUrl = `${currentConfig.apiEndpoint}?key=${encodeURIComponent(key!)}&name=${encodeURIComponent(name!)}`;
+  const pdfUrl = `${currentConfig.apiEndpoint}?key=${encodeURIComponent(key)}&name=${encodeURIComponent(name)}&view=true`;
+  const downloadUrl = `${currentConfig.apiEndpoint}?key=${encodeURIComponent(key)}&name=${encodeURIComponent(name)}`;
   const cleanName = stripTimestamp(name);
   // Determinar homeUrl y homeLabel según el rol
   // Ejemplo: puedes obtener el rol del usuario desde contexto, session, etc.

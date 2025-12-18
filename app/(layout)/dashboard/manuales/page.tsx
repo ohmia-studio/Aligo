@@ -5,11 +5,7 @@ import { AdminManagerPageTemplate } from '@/components/page/adminManagerPageTemp
 import ResourcesList from '@/components/page/resourcesList';
 import ResourcesUploadForm from '@/components/page/resourcesUploadForm';
 import { triggerDownload } from '@/features/storage/client';
-import {
-  deleteAction,
-  listAction,
-  uploadAction,
-} from '@/features/storage/storage';
+import { deleteAction, listAction } from '@/features/storage/storage';
 import { Resource } from '@/interfaces/resource-interfaces';
 import { stripTimestamp } from '@/lib/utils';
 import { useEffect, useState } from 'react';
@@ -51,11 +47,7 @@ export default function ManualsPage() {
       }
       UploaderComponent={
         // <ManualUploadForm onUploadSuccess={handleUploadSuccess} />
-        <ResourcesUploadForm
-          type="Manual"
-          onUploadSuccess={fetchManuals}
-          onUploadAction={uploadAction}
-        />
+        <ResourcesUploadForm type="Manual" onUploadSuccess={fetchManuals} />
       }
       ListComponent={
         // <ManualList manuals={manuals} onRefresh={fetchManuals} onDownload={handleDownload}/>

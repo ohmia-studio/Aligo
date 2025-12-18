@@ -1,16 +1,10 @@
 'use client';
+import { NotFoundPageProps } from '@/interfaces/not-found-interfaces';
 import { RootState } from '@/store/store';
 import { FileQuestion } from 'lucide-react';
 import Link from 'next/link';
 import { useSelector } from 'react-redux';
 import { Button } from './button';
-
-interface NotFoundPageProps {
-  title?: string;
-  message?: string;
-  backUrl: string;
-  backLabel: string;
-}
 
 export default function NotFoundPage({
   title = 'Recurso no encontrado',

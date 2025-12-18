@@ -11,5 +11,10 @@ export default async function ManualViewPage({
     notFound();
   }
 
-  return <GenericPDFViewPage searchParams={searchParams} type="manuales" />;
+  return (
+    <GenericPDFViewPage
+      searchParams={Promise.resolve({ key, name })}
+      type="manuales"
+    />
+  );
 }

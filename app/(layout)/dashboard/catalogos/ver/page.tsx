@@ -9,5 +9,10 @@ export default async function PDFViewPage({ searchParams }: PDFViewPageProps) {
     notFound();
   }
 
-  return <GenericPDFViewPage searchParams={searchParams} type="catalogos" />;
+  return (
+    <GenericPDFViewPage
+      searchParams={Promise.resolve({ key, name })}
+      type="catalogos"
+    />
+  );
 }
