@@ -13,7 +13,7 @@ const ACCOUNT = process.env.R2_ACCOUNT_ID;
 
 type ResourceType = 'catalogs' | 'manuales';
 
-function getBucketAndPrefix(resource: ResourceType) {
+export async function getBucketAndPrefix(resource: ResourceType) {
   // Ajustar nombres de bucket si los tenés separados en env
   const buckets: Record<ResourceType, string> = {
     catalogs:
@@ -45,7 +45,7 @@ export async function uploadAction(formData: FormData): Promise<Result> {
     if (!prefix || (prefix !== 'catalogs' && prefix !== 'manuales')) {
       return { status: 400, message: 'Prefijo no válido', data: null };
     }
-    const { bucket } = getBucketAndPrefix(prefix);
+    const { bucket } = await getBucketAndPrefix(prefix);
 
     if (!file) {
       return {
@@ -120,7 +120,7 @@ export async function deleteAction(
 
   try {
     // Validar que la key pertenece al prefijo esperado
-    const { prefix } = getBucketAndPrefix(resource);
+    const { prefix } = await getBucketAndPrefix(resource);
     if (!key || !key.startsWith(prefix)) {
       return {
         status: 400,
@@ -129,7 +129,7 @@ export async function deleteAction(
       };
     }
 
-    const { bucket } = getBucketAndPrefix(resource);
+    const { bucket } = await getBucketAndPrefix(resource);
     const command = new DeleteObjectCommand({ Bucket: bucket, Key: key });
     await r2.send(command);
 
@@ -146,7 +146,7 @@ export async function deleteAction(
 
 export async function listAction(resource: ResourceType): Promise<Result> {
   try {
-    const { bucket, prefix } = getBucketAndPrefix(resource);
+    const { bucket, prefix } = await getBucketAndPrefix(resource);
     const command = new ListObjectsV2Command({
       Bucket: bucket,
       Prefix: prefix,
