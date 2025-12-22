@@ -14,7 +14,7 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 
 type Filters = {
   tagName: string | null;
-  sortBy: 'recent' | 'oldest' | 'thisMonth' | 'last7Days';
+  sortBy: 'recent' | 'oldest' | 'thisMonth' | 'last7Days' | 'today';
 };
 
 interface NewsFiltersProps {
@@ -145,6 +145,11 @@ export default function NewsFilters(props: NewsFiltersProps) {
       <article className="flex items-center justify-between">
         <span className="text-muted-foreground text-xs">Orden</span>
         <div className="flex flex-wrap gap-2">
+          <SmallToggle
+            active={value.sortBy === 'today'}
+            label="Hoy"
+            onClick={() => onChange({ ...value, sortBy: 'today' })}
+          />
           <SmallToggle
             active={value.sortBy === 'recent'}
             label="Recientes"
