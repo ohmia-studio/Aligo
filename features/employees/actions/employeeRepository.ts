@@ -33,6 +33,18 @@ export async function getWorkers() {
   }
 }
 
+export async function getAllPersonasEmails() {
+  try {
+    const resp = await supabaseAdmin
+      .from('Persona')
+      .select('email, nombre, apellido');
+    if (resp.error) return fail(resp.error);
+    return ok(Array.isArray(resp.data) ? resp.data : []);
+  } catch (err) {
+    return fail(err);
+  }
+}
+
 export async function findPersonaByDniOrEmail(dni: string, email: string) {
   try {
     const resp = await supabaseAdmin
