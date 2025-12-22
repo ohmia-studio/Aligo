@@ -8,8 +8,8 @@ export interface PDFViewPageProps {
 
 export interface GenericPDFViewPageProps {
   searchParams: Promise<{
-    key?: string;
-    name?: string;
+    key: string;
+    name: string;
     resource?: string;
   }>;
   type: 'catalogos' | 'manuales';

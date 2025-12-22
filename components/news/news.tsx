@@ -13,6 +13,27 @@ import NewsForm from './newsForm';
 import NewsList from './newsList';
 import NewsListSkeleton from './newsListSkeleton';
 
+// Función helper para extraer todo el texto del JSON de TipTap
+function extractTextFromTipTap(json: any): string {
+  if (!json) return '';
+
+  let text = '';
+
+  // Si el nodo tiene texto directo, agregarlo
+  if (json.text) {
+    text += json.text;
+  }
+
+  // Si tiene contenido (array de nodos), recorrerlo recursivamente
+  if (Array.isArray(json.content)) {
+    for (const node of json.content) {
+      text += ' ' + extractTextFromTipTap(node);
+    }
+  }
+
+  return text;
+}
+
 export default function News({
   news,
   tags,
@@ -32,29 +53,59 @@ export default function News({
   const [isOpen, setIsOpen] = useState(false);
   const [newEdit, setNewEdit] = useState<NewEdit>(defaultEdit);
   const { isAdmin } = usePermissions();
+  // Estado local para el texto de búsqueda
+  const [searchText, setSearchText] = useState('');
   const [filters, setFilters] = useState({
-    query: '',
     tagName: null as string | null,
-    sortBy: 'recent' as 'recent' | 'oldest',
+    sortBy: 'recent' as
+      | 'recent'
+      | 'oldest'
+      | 'thisMonth'
+      | 'last7Days'
+      | 'today',
   });
 
   const filteredNews = (Array.isArray(news.data) ? news.data : [])
     .filter((n: any) => {
-      const q = (filters.query || '').toLowerCase();
+      const q = (searchText || '').toLowerCase();
       const titulo = (
         typeof n.titulo === 'string' ? n.titulo : ''
       ).toLowerCase();
-      const desc =
-        typeof n.descripcion === 'string' ? n.descripcion.toLowerCase() : '';
-      const matchesQuery = q ? titulo.includes(q) || desc.includes(q) : true;
+
+      // Extraer texto del JSON de TipTap
+      const contenido = extractTextFromTipTap(n.descripcion).toLowerCase();
+
+      const matchesQuery = q
+        ? titulo.includes(q) || contenido.includes(q)
+        : true;
       const matchesTag =
         filters.tagName === null ? true : (n.tag || '') === filters.tagName;
-      return matchesQuery && matchesTag;
+
+      // Filtro por fecha
+      let matchesDate = true;
+      const newsDate = new Date(n.created_at);
+      const now = new Date();
+
+      if (filters.sortBy === 'thisMonth') {
+        matchesDate =
+          newsDate.getMonth() === now.getMonth() &&
+          newsDate.getFullYear() === now.getFullYear();
+      } else if (filters.sortBy === 'last7Days') {
+        const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        matchesDate = newsDate >= sevenDaysAgo;
+      } else if (filters.sortBy === 'today') {
+        matchesDate =
+          newsDate.getDate() === now.getDate() &&
+          newsDate.getMonth() === now.getMonth() &&
+          newsDate.getFullYear() === now.getFullYear();
+      }
+
+      return matchesQuery && matchesTag && matchesDate;
     })
     .sort((a: any, b: any) => {
       const da = new Date(a.created_at).getTime();
       const db = new Date(b.created_at).getTime();
-      return filters.sortBy === 'recent' ? db - da : da - db;
+      return filters.sortBy === 'oldest' ? da - db : db - da;
     });
 
   useEffect(() => {
@@ -68,7 +119,13 @@ export default function News({
         <ServerErrorPage errorCode={news.status} />
       ) : (
         <div className="space-y-8 p-0 md:p-6">
-          <NewsFilters tags={tags} value={filters} onChange={setFilters} />
+          <NewsFilters
+            tags={tags}
+            value={filters}
+            onChange={setFilters}
+            searchText={searchText}
+            onSearchTextChange={setSearchText}
+          />
           <section className="space-y-4">
             {/* Header */}
             <div className="flex items-center gap-4">

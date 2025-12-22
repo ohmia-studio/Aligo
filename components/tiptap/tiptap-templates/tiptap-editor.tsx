@@ -224,7 +224,7 @@ export function TextEditor({
   }, [isMobile, mobileView]);
 
   return (
-    <div className="h-[60%] w-auto overflow-auto">
+    <div className="h-[inherit] w-auto overflow-auto">
       <EditorContext.Provider value={{ editor }}>
         <Toolbar
           ref={toolbarRef}

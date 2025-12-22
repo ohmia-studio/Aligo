@@ -1,6 +1,18 @@
 import GenericPDFViewPage from '@/components/common/GenericPDFViewPage';
 import { PDFViewPageProps } from '@/interfaces/documents-interfaces';
+import { notFound } from 'next/navigation';
 
-export default function PDFViewPage({ searchParams }: PDFViewPageProps) {
-  return <GenericPDFViewPage searchParams={searchParams} type="catalogos" />;
+export default async function PDFViewPage({ searchParams }: PDFViewPageProps) {
+  const { key, name } = await searchParams;
+
+  if (!key || !name) {
+    notFound();
+  }
+
+  return (
+    <GenericPDFViewPage
+      searchParams={Promise.resolve({ key, name })}
+      type="catalogos"
+    />
+  );
 }

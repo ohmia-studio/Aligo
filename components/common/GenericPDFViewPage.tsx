@@ -1,6 +1,5 @@
 import { GenericPDFViewPageProps } from '@/interfaces/documents-interfaces';
 import { stripTimestamp } from '@/lib/utils';
-import ServerErrorPage from '../page/serverErrorPage';
 import BrowserPDFViewer from './BrowserPDFViewer';
 
 export default async function GenericPDFViewPage({
@@ -23,10 +22,6 @@ export default async function GenericPDFViewPage({
   };
 
   const currentConfig = config[type];
-
-  if (!key || !name) {
-    return <ServerErrorPage errorCode={400} />;
-  }
 
   // Construir las URLs del PDF
   const pdfUrl = `${currentConfig.apiEndpoint}?key=${encodeURIComponent(key)}&name=${encodeURIComponent(name)}&view=true`;

@@ -10,65 +10,45 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { TagItem } from '@/interfaces/news-interfaces';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useMemo, useRef, useState } from 'react';
 
 type Filters = {
-  query: string;
   tagName: string | null;
-  sortBy: 'recent' | 'oldest';
+  sortBy: 'recent' | 'oldest' | 'thisMonth' | 'last7Days' | 'today';
 };
 
-export default function NewsFilters({
-  tags,
-  value,
-  onChange,
-}: {
+interface NewsFiltersProps {
   tags: TagItem[];
   value: Filters;
   onChange: (next: Filters) => void;
-}) {
-  const [localQuery, setLocalQuery] = useState(value.query);
-  const debounceRef = useRef<number | null>(null);
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+  searchText: string;
+  onSearchTextChange: (q: string) => void;
+}
 
-  const updateUrl = (next: Filters) => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (next.query) params.set('q', next.query);
-    else params.delete('q');
-    if (next.tagName) params.set('tag', next.tagName);
-    else params.delete('tag');
-    if (next.sortBy && next.sortBy !== 'recent')
-      params.set('sort', next.sortBy);
-    else params.delete('sort');
-    const href = `${pathname}?${params.toString()}`;
-    router.replace(href);
-  };
+export default function NewsFilters(props: NewsFiltersProps) {
+  const { tags, value, onChange, searchText, onSearchTextChange } = props;
+  const [localQuery, setLocalQuery] = useState(searchText);
+  const debounceRef = useRef<number | null>(null);
 
   const activeCount = useMemo(() => {
     let c = 0;
-    if (value.query) c++;
+    if (searchText) c++;
     if (value.tagName !== null) c++;
     if (value.sortBy !== 'recent') c++;
     return c;
-  }, [value]);
+  }, [value, searchText]);
 
   const applyQuery = useCallback(
     (q: string) => {
-      const next = { ...value, query: q };
-      onChange(next);
-      updateUrl(next);
+      onSearchTextChange(q);
     },
-    [onChange, value]
+    [onSearchTextChange]
   );
 
   const reset = () => {
     setLocalQuery('');
-    const next: Filters = { query: '', tagName: null, sortBy: 'recent' };
-    onChange(next);
-    updateUrl(next);
+    onSearchTextChange('');
+    onChange({ tagName: null, sortBy: 'recent' });
   };
 
   return (
@@ -79,7 +59,6 @@ export default function NewsFilters({
           onChange={(e) => {
             const q = e.target.value;
             setLocalQuery(q);
-            // lightweight debounce without globals
             if (debounceRef.current) {
               window.clearTimeout(debounceRef.current);
             }
@@ -110,7 +89,6 @@ export default function NewsFilters({
           onValueChange={(val) => {
             const next = { ...value, tagName: val === '__all__' ? null : val };
             onChange(next);
-            updateUrl(next);
           }}
         >
           <SelectTrigger className="text-base-color w-full">
@@ -147,7 +125,6 @@ export default function NewsFilters({
           onClick={() => {
             const next = { ...value, tagName: null };
             onChange(next);
-            updateUrl(next);
           }}
         />
         {tags.map((t) => (
@@ -160,7 +137,6 @@ export default function NewsFilters({
             onClick={() => {
               const next = { ...value, tagName: t.nombre };
               onChange(next);
-              updateUrl(next);
             }}
           />
         ))}
@@ -168,11 +144,26 @@ export default function NewsFilters({
 
       <article className="flex items-center justify-between">
         <span className="text-muted-foreground text-xs">Orden</span>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <SmallToggle
+            active={value.sortBy === 'today'}
+            label="Hoy"
+            onClick={() => onChange({ ...value, sortBy: 'today' })}
+          />
           <SmallToggle
             active={value.sortBy === 'recent'}
             label="Recientes"
             onClick={() => onChange({ ...value, sortBy: 'recent' })}
+          />
+          <SmallToggle
+            active={value.sortBy === 'last7Days'}
+            label="Últimos 7 días"
+            onClick={() => onChange({ ...value, sortBy: 'last7Days' })}
+          />
+          <SmallToggle
+            active={value.sortBy === 'thisMonth'}
+            label="Este mes"
+            onClick={() => onChange({ ...value, sortBy: 'thisMonth' })}
           />
           <SmallToggle
             active={value.sortBy === 'oldest'}

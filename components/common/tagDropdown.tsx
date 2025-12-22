@@ -33,10 +33,10 @@ export function TagDropdown({ tags, value, onChange, onCreateTag }: Props) {
   return (
     <>
       <Select name="tag" value={value} onValueChange={onChange}>
-        <SelectTrigger className="w-[180px]">
-          <SelectValue placeholder="Selecciona un tag" defaultValue={''} />{' '}
+        <SelectTrigger className="bg-base-color/5 w-[180px]">
+          <SelectValue placeholder="Selecciona un tag" defaultValue={''} />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className="">
           <SelectGroup>
             <SelectLabel className="opacity-30">Tags existentes</SelectLabel>
             {tags.map((tag, index) => (
@@ -52,7 +52,7 @@ export function TagDropdown({ tags, value, onChange, onCreateTag }: Props) {
           <SelectGroup>
             <SelectLabel className="opacity-30">Nuevo Tag</SelectLabel>
             <input
-              className="px-2"
+              className="bg-base-color/5 rounded px-2"
               placeholder="ingrese..."
               value={newTag}
               onChange={(e) => setNewTag(e.target.value)}

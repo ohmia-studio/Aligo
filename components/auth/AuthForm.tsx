@@ -74,7 +74,7 @@ export default function AuthForm() {
         name="resetMode"
         value={state.resetMode ? 'true' : 'false'}
       />
-      <label className="mb-1 block text-sm font-medium">Usuario</label>
+      <label className="mb-1 block text-sm font-medium">Email</label>
       <input
         type="email"
         name="username"
@@ -82,7 +82,7 @@ export default function AuthForm() {
         onChange={handleChange}
         required
         className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:outline-none"
-        placeholder="Tu usuario"
+        placeholder="example@hotmail.com"
       />
 
       {!state.resetMode && (
