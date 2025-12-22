@@ -14,11 +14,18 @@ type Props = {
 export default function ResourcesUploadForm({ type, onUploadSuccess }: Props) {
   const [isUploading, setIsUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isLoadingFile, setIsLoadingFile] = useState(false);
   const isProcessingRef = useRef(false);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) setSelectedFile(file);
+    if (file) {
+      setIsLoadingFile(true);
+      // Pequeña pausa para permitir que el navegador procese el archivo
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      setSelectedFile(file);
+      setIsLoadingFile(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -94,7 +101,12 @@ export default function ResourcesUploadForm({ type, onUploadSuccess }: Props) {
             Seleccionar archivo PDF
           </label>
           <div className="border-base-color/70 flex h-auto w-full place-content-center items-center rounded-md border-2 border-dashed bg-white/10 hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-50">
-            {selectedFile ? (
+            {isLoadingFile ? (
+              <p className="text-base-color/80 absolute flex items-center gap-2 p-2 text-sm font-medium">
+                <Spinner className="h-4 w-4" />
+                Cargando...
+              </p>
+            ) : selectedFile ? (
               <p className="text-base-color/80 absolute h-auto max-w-[16rem] truncate p-2 text-sm font-medium">
                 {selectedFile.name}
               </p>
@@ -106,7 +118,7 @@ export default function ResourcesUploadForm({ type, onUploadSuccess }: Props) {
               type="file"
               accept="application/pdf"
               onChange={handleFileChange}
-              disabled={isUploading}
+              disabled={isUploading || isLoadingFile}
               className="min-h-12 w-full opacity-0 hover:cursor-pointer disabled:cursor-not-allowed"
               required
             />
