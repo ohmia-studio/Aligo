@@ -45,7 +45,7 @@ const navData = {
     },
     {
       title: 'Recursos',
-      access: ['admin', 'empleado'],
+      access: ['admin', 'employee'],
       icon: NotebookText,
       items: [
         {

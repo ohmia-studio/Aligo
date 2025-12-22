@@ -231,9 +231,9 @@ export default function NewsForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex h-full flex-col rounded-lg border shadow md:p-4"
+      className="bg-container flex h-full flex-col justify-between rounded-lg border shadow md:p-4"
     >
-      <section className="text-base-color h-full">
+      <section className="text-base-color h-full md:h-[90%]">
         <div className="flex w-full flex-col gap-8 p-4 md:mb-4 md:p-0 lg:flex-row">
           <div className="w-full">
             <label className="text-sm font-medium">Título</label>
@@ -247,7 +247,7 @@ export default function NewsForm({
                   titulo: e.target.value,
                 }))
               }
-              className="focus:border-base-color w-full rounded border p-2"
+              className="focus:border-base-color bg-base-color/5 w-full rounded border p-2"
               required
             />
           </div>
@@ -290,9 +290,9 @@ export default function NewsForm({
       </section>
       <Button
         type="submit"
-        variant={'secondary'}
+        variant={'primary'}
         disabled={loading}
-        className="h-auto w-full rounded px-4 py-2 hover:cursor-pointer disabled:bg-gray-400 md:ml-2 md:w-40"
+        className="h-auto w-full rounded px-4 py-2 font-bold drop-shadow-md hover:cursor-pointer disabled:bg-gray-400 md:ml-2 md:w-40"
       >
         {loading
           ? 'Enviando...'

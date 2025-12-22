@@ -22,7 +22,7 @@ export function Dialog({
   onConfirm,
 }: AlertDialogEvent) {
   return (
-    <AlertDialogContent className="bg-container">
+    <AlertDialogContent className="bg-container flex flex-col">
       <AlertDialogHeader>
         <AlertDialogTitle className="text-base-color">{title}</AlertDialogTitle>
         <AlertDialogDescription>{description}</AlertDialogDescription>
