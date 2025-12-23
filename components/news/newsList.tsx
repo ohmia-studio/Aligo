@@ -30,15 +30,15 @@ const NewsItem = React.memo(function NewsItem({
           <h2>{n.titulo}</h2>
           <div className="flex w-full flex-row items-center gap-8 md:w-fit">
             {n.tag && (
-              <span className="bg-accent text-accent-foreground max-h-fit min-w-fit rounded px-2 py-1 text-sm">
+              <span className="text-accent bg-container border-background max-h-fit min-w-fit rounded-full border-2 px-4 py-1 text-sm">
                 {n.tag}
               </span>
             )}
             {hasPermision && (
               <div className="flex flex-auto justify-end gap-2 md:justify-start">
                 <Button
-                  className="border-accent hover:cursor-pointer"
-                  variant="secondary"
+                  className="text-accent border-secondary cursor-pointer text-sm font-medium hover:brightness-120"
+                  variant="outline"
                   type="button"
                   onClick={() =>
                     onEdit({
@@ -62,8 +62,8 @@ const NewsItem = React.memo(function NewsItem({
                   />
                   <AlertDialogTrigger asChild>
                     <Button
-                      className="hover:cursor-pointer"
-                      variant="destructive"
+                      className="hover:shadow-destructive text-destructive bg-container border-destructive/40 hover:cursor-pointer"
+                      variant="outline"
                       type="button"
                     >
                       <Trash2Icon />

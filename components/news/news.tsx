@@ -13,6 +13,27 @@ import NewsForm from './newsForm';
 import NewsList from './newsList';
 import NewsListSkeleton from './newsListSkeleton';
 
+// Función helper para extraer todo el texto del JSON de TipTap
+function extractTextFromTipTap(json: any): string {
+  if (!json) return '';
+
+  let text = '';
+
+  // Si el nodo tiene texto directo, agregarlo
+  if (json.text) {
+    text += json.text;
+  }
+
+  // Si tiene contenido (array de nodos), recorrerlo recursivamente
+  if (Array.isArray(json.content)) {
+    for (const node of json.content) {
+      text += ' ' + extractTextFromTipTap(node);
+    }
+  }
+
+  return text;
+}
+
 export default function News({
   news,
   tags,
@@ -36,7 +57,12 @@ export default function News({
   const [searchText, setSearchText] = useState('');
   const [filters, setFilters] = useState({
     tagName: null as string | null,
-    sortBy: 'recent' as 'recent' | 'oldest' | 'thisMonth' | 'last7Days',
+    sortBy: 'recent' as
+      | 'recent'
+      | 'oldest'
+      | 'thisMonth'
+      | 'last7Days'
+      | 'today',
   });
 
   const filteredNews = (Array.isArray(news.data) ? news.data : [])
@@ -45,9 +71,13 @@ export default function News({
       const titulo = (
         typeof n.titulo === 'string' ? n.titulo : ''
       ).toLowerCase();
-      const desc =
-        typeof n.descripcion === 'string' ? n.descripcion.toLowerCase() : '';
-      const matchesQuery = q ? titulo.includes(q) || desc.includes(q) : true;
+
+      // Extraer texto del JSON de TipTap
+      const contenido = extractTextFromTipTap(n.descripcion).toLowerCase();
+
+      const matchesQuery = q
+        ? titulo.includes(q) || contenido.includes(q)
+        : true;
       const matchesTag =
         filters.tagName === null ? true : (n.tag || '') === filters.tagName;
 
@@ -63,6 +93,11 @@ export default function News({
       } else if (filters.sortBy === 'last7Days') {
         const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
         matchesDate = newsDate >= sevenDaysAgo;
+      } else if (filters.sortBy === 'today') {
+        matchesDate =
+          newsDate.getDate() === now.getDate() &&
+          newsDate.getMonth() === now.getMonth() &&
+          newsDate.getFullYear() === now.getFullYear();
       }
 
       return matchesQuery && matchesTag && matchesDate;
