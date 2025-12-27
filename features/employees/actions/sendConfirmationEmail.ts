@@ -1,20 +1,10 @@
-import nodemailer from 'nodemailer';
+import { sendEmail } from '@/lib/emailService';
 
 export async function sendConfirmationEmail(
   to: string,
   tempPassword: string,
   nombre?: string
 ) {
-  const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT ?? 587),
-    secure: process.env.SMTP_SECURE === 'true',
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-  });
-
   const appName = process.env.APP_NAME ?? 'Aligo';
   const supportEmail =
     process.env.SUPPORT_EMAIL ?? process.env.SMTP_FROM ?? 'soporte@ejemplo.com';
@@ -77,34 +67,9 @@ export async function sendConfirmationEmail(
 </body>
 </html>`;
 
-  const text = `Hola ${nombre ?? ''},
-
-Tu cuenta en ${appName} fue creada correctamente.
-
-Contraseña temporal: ${tempPassword}
-
-Por seguridad, cambiá la contraseña al ingresar por primera vez.
-Soporte: ${supportEmail}
-
-© ${year} ${appName}
-`;
-
-  const defaultHost = (() => {
-    try {
-      const u = new URL(process.env.FRONTEND_URL || '');
-      return u.host || 'example.com';
-    } catch {
-      return 'example.com';
-    }
-  })();
-
-  const fromAddress = process.env.SMTP_FROM ?? `no-reply@${defaultHost}`;
-
-  await transporter.sendMail({
-    from: fromAddress,
+  await sendEmail({
     to,
     subject: `[${appName}] Acceso creado`,
-    text,
     html,
   });
 }

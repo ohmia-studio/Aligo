@@ -20,3 +20,7 @@ export interface TagItem {
     descripcion?: string;
 }
 
+export interface NewsNotificationParams {
+  titulo: string;
+  tipo: 'creada' | 'actualizada';
+};

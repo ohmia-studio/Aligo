@@ -224,7 +224,7 @@ export async function altaEmpleadoAction(formData: FormData): Promise<Result> {
       nombre,
       apellido,
       email,
-      telefono: telefonoNormalizado, // usar teléfono normalizado
+      telefono: telefonoNormalizado,
       rol: 'empleado',
       auth_id: authId,
     });
@@ -243,20 +243,14 @@ export async function altaEmpleadoAction(formData: FormData): Promise<Result> {
       };
     }
 
-    try {
-      await sendConfirmationEmail(email, passwordTemporal, nombre);
-    } catch (mailErr) {
+    // Enviar email en background SIN esperar
+    sendConfirmationEmail(email, passwordTemporal, nombre).catch((mailErr) => {
       console.error('Error enviando email de confirmación:', mailErr);
-      return {
-        status: 200,
-        message: `Empleado registrado, pero no se pudo enviar el correo a ${email}.`,
-        data: { passwordTemporal },
-      };
-    }
+    });
 
     return {
       status: 200,
-      message: `Empleado registrado correctamente. Se envió un correo a ${email}.`,
+      message: `Empleado registrado correctamente. Se enviará un correo a ${email}.`,
       data: { passwordTemporal },
     };
   } catch (err) {

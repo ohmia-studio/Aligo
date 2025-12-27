@@ -2,6 +2,7 @@
 // app/actions/news/createNews.ts
 import { uploadNew } from '@/features/news/news';
 import { New } from '@/interfaces/news-interfaces';
+import { notifyNewsUpdate } from '@/lib/emailService';
 import { revalidatePath } from 'next/cache';
 import { deleteNewsImagesAction } from './deleteNewsImages';
 
@@ -30,6 +31,16 @@ export async function createNewsAction(payload: New) {
 
   // Revalida la ruta /news en el servidor para que las páginas SSR actualicen su cache
   revalidatePath('/news');
+
+  // Enviar notificaciones en background SIN esperar
+  notifyNewsUpdate({ titulo: payload.titulo, tipo: 'creada' }).catch(
+    (error) => {
+      console.error(
+        '[createNews] Error en notificaciones (background):',
+        error
+      );
+    }
+  );
 
   // Devuelve datos útiles al cliente (ej. el registro creado)
   return result.data;
