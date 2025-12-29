@@ -3,17 +3,34 @@ import { NewsNotificationParams } from '@/interfaces/news-interfaces';
 import { Resend } from 'resend';
 import { SendEmailParams } from '../interfaces/email-interfaces';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resendApiKey = process.env.RESEND_API_KEY;
 
+if (!resendApiKey || resendApiKey.trim() === '') {
+  throw new Error(
+    'RESEND_API_KEY environment variable is not set or is empty. ' +
+      'Please configure a valid API key before using the email service.',
+  );
+}
+
+const resend = new Resend(resendApiKey);
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export async function sendEmail({ to, subject, html }: SendEmailParams) {
-  await resend.emails.send({
-    from: 'Aligo <noreply@notifications.aligo.com.ar>',
-    to,
-    subject,
-    html,
-  });
+  try {
+    await resend.emails.send({
+      from: 'Aligo <noreply@notifications.aligo.com.ar>',
+      to,
+      subject,
+      html,
+    });
+  } catch (error) {
+    console.error('[sendEmail] Error sending email via Resend:', {
+      to,
+      subject,
+      error,
+    });
+    throw error;
+  }
 }
 
 export async function notifyNewsUpdate({
