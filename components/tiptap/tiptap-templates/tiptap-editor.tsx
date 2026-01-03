@@ -63,7 +63,7 @@ const MainToolbarContent = React.memo(
     onLinkClick: () => void;
     isMobile: boolean;
   }) => (
-    <div className="flex flex-wrap justify-center gap-2">
+    <div className="flex w-full flex-wrap gap-2">
       {!isMobile && <Spacer />}
       <ToolbarGroup>
         <UndoRedoButton action="undo" />
@@ -233,7 +233,10 @@ export function TextEditor({
               ? {
                   position: 'relative',
                   display: 'flex',
-                  flexFlow: 'column',
+                  flexFlow: 'row wrap',
+                  overflowX: 'hidden',
+                  minHeight: 'auto',
+                  height: 'auto',
                 }
               : undefined
           }
