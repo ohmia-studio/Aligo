@@ -292,7 +292,7 @@ export default function NewsForm({
         type="submit"
         variant={'primary'}
         disabled={loading}
-        className="h-auto w-full rounded px-4 py-2 font-bold drop-shadow-md hover:cursor-pointer disabled:bg-gray-400 md:ml-2 md:w-40"
+        className="sticky bottom-0 h-auto w-full rounded px-4 py-2 font-bold drop-shadow-md hover:cursor-pointer disabled:bg-gray-400 md:relative md:ml-2 md:w-40"
       >
         {loading
           ? 'Enviando...'
